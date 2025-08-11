@@ -1,19 +1,38 @@
 package main
 
 import (
+	"fmt"
 	"github.com/gofiber/fiber/v2"
+	"gopkg.in/yaml.v3"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"log"
+	"os"
+	config2 "pplace_backend/internal/config"
 	"pplace_backend/internal/controller"
 	"pplace_backend/internal/database"
 	"pplace_backend/internal/model"
 	"pplace_backend/internal/service"
 	"pplace_backend/internal/transport"
+	"strconv"
 )
 
 func main() {
-	dsn := "host=localhost user=pplace password=pplace123 dbname=pplace-dev port=5432 sslmode=disable"
+	data, err := os.ReadFile("configs/application.yml")
+	if err != nil {
+		log.Fatal("Error while getting YAML config file: ", err)
+	}
+
+	var config config2.Config
+	err = yaml.Unmarshal(data, &config)
+	if err != nil {
+		log.Fatal("Error while parsing config file: ", err)
+	}
+	log.Println("Loaded config")
+
+	dbConfig := config.PPlace.Database
+
+	dsn := fmt.Sprintf("host=%v user=%v password=%v dbname=%v port=%v sslmode=disable", dbConfig.Host, dbConfig.User, dbConfig.Password, dbConfig.DBName, dbConfig.Port) // "host=localhost user= password=pplace123 dbname=pplace-dev port=5432 sslmode=disable"
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
 		log.Fatal("Error connecting to database: ", err)
@@ -36,5 +55,5 @@ func main() {
 	_ = transport.NewRouter(app, userController)
 	log.Println("Added routes")
 
-	log.Fatal(app.Listen(":8000"))
+	log.Fatal(app.Listen(":" + strconv.Itoa(int(config.PPlace.Port))))
 }
