@@ -7,15 +7,15 @@ import (
 )
 
 type UserService struct {
-	Repository *database.UserRepository
+	repository *database.UserRepository
 }
 
 func NewUserService(repository *database.UserRepository) UserService {
-	return UserService{Repository: repository}
+	return UserService{repository: repository}
 }
 
 func (us *UserService) Create(user *model.User) (*model.User, error) {
-	result, err := us.Repository.Create(user)
+	result, err := us.repository.Create(user)
 
 	if err != nil {
 		return nil, err

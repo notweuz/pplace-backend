@@ -8,15 +8,15 @@ import (
 )
 
 type UserController struct {
-	Service *service.UserService
+	service *service.UserService
 }
 
 func NewUserController(service *service.UserService) UserController {
-	return UserController{Service: service}
+	return UserController{service: service}
 }
 
 func (uc *UserController) GetSelfInfo(ctx *fiber.Ctx) error {
-	info, err := uc.Service.GetSelfInfo(ctx)
+	info, err := uc.service.GetSelfInfo(ctx)
 	if err != nil {
 		log.Println("GetSelfInfo error:", err)
 		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
