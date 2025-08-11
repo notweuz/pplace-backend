@@ -9,10 +9,8 @@ import (
 	"log"
 	"os"
 	config2 "pplace_backend/internal/config"
-	"pplace_backend/internal/controller"
-	"pplace_backend/internal/database"
+	"pplace_backend/internal/layer"
 	"pplace_backend/internal/model"
-	"pplace_backend/internal/service"
 	"pplace_backend/internal/transport"
 	"strconv"
 )
@@ -47,12 +45,10 @@ func main() {
 
 	app := fiber.New()
 
-	userRepository := database.NewUserRepository(db)
-	userService := service.NewUserService(&userRepository)
-	userController := controller.NewUserController(&userService)
+	userLayer := layer.NewUserLayer(db)
 	log.Println("Created layers")
 
-	_ = transport.NewRouter(app, userController)
+	_ = transport.NewRouter(app, *userLayer.Controller)
 	log.Println("Added routes")
 
 	log.Fatal(app.Listen(":" + strconv.Itoa(int(config.PPlace.Port))))
