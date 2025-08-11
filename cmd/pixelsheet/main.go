@@ -46,9 +46,10 @@ func main() {
 	app := fiber.New()
 
 	userLayer := layer.NewUserLayer(db)
+	authLayer := layer.NewAuthLayer(userLayer.Service)
 	log.Println("Created layers")
 
-	_ = transport.NewRouter(app, *userLayer.Controller)
+	_ = transport.NewRouter(app, userLayer.Controller, authLayer.Controller)
 	log.Println("Added routes")
 
 	log.Fatal(app.Listen(":" + strconv.Itoa(int(config.PPlace.Port))))

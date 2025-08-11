@@ -24,6 +24,15 @@ func (us *UserService) Create(user *model.User) (*model.User, error) {
 	return result, nil
 }
 
+func (us *UserService) GetByUsername(username string) (*model.User, error) {
+	result, err := us.repository.GetByUsername(username)
+	if err != nil {
+		return nil, err
+	}
+
+	return result, nil
+}
+
 func (us *UserService) GetSelfInfo(ctx *fiber.Ctx) (*model.User, error) {
 	return nil, nil
 }

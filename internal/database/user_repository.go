@@ -28,3 +28,14 @@ func (ur *UserRepository) GetById(id uint) (*model.User, error) {
 
 	return &user, result.Error
 }
+
+func (ur *UserRepository) GetByUsername(username string) (*model.User, error) {
+	var user model.User
+	result := ur.db.Where("username = ?", username).First(&user)
+
+	if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+		return nil, nil
+	}
+
+	return &user, result.Error
+}
