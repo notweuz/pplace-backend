@@ -7,7 +7,7 @@ import (
 
 type User struct {
 	gorm.Model
-	Username   string
+	Username   string `gorm:"unique"`
 	Password   string
 	LastPlaced time.Time
 	Active     bool
