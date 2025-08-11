@@ -1,6 +1,7 @@
 package layer
 
 import (
+	"gorm.io/gorm"
 	"pplace_backend/internal/controller"
 	"pplace_backend/internal/database"
 	"pplace_backend/internal/service"
@@ -12,10 +13,14 @@ type UserLayer struct {
 	Controller *controller.UserController
 }
 
-func NewUserLayer(r *database.UserRepository, s *service.UserService, c *controller.UserController) UserLayer {
+func NewUserLayer(db *gorm.DB) UserLayer {
+	r := database.NewUserRepository(db)
+	s := service.NewUserService(&r)
+	c := controller.NewUserController(&s)
+
 	return UserLayer{
-		Repository: r,
-		Service:    s,
-		Controller: c,
+		Repository: &r,
+		Service:    &s,
+		Controller: &c,
 	}
 }
