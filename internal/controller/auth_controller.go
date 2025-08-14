@@ -29,6 +29,12 @@ func (c *AuthController) Register(ctx *fiber.Ctx) error {
 
 	token, err := c.service.Register(data)
 	if err != nil {
+		if err.Error() == "username exists" {
+			return ctx.Status(fiber.StatusConflict).JSON(fiber.Map{
+				"error": "Username already exists",
+			})
+		}
+
 		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
 			"error": err.Error(),
 		})

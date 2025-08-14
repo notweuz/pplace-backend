@@ -21,6 +21,10 @@ func NewAuthService(userService *UserService, config *config.PPlaceConfig) AuthS
 }
 
 func (s *AuthService) Register(dto request.AuthDto) (response.AuthTokenDto, error) {
+	if _, err := s.userService.GetByUsername(dto.Username); err == nil {
+		return response.AuthTokenDto{}, fmt.Errorf("username exists")
+	}
+
 	password, _ := bcrypt.GenerateFromPassword([]byte(dto.Password), bcrypt.DefaultCost)
 
 	user := model.User{
