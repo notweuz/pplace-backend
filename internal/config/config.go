@@ -15,9 +15,15 @@ type JWTConfig struct {
 
 type PPlaceConfig struct {
 	Port     uint           `yaml:"port"`
-	Version  float32        `yaml:"version"`
+	Version  string         `yaml:"version"`
 	Database DatabaseConfig `yaml:"database"`
 	JWT      JWTConfig      `yaml:"jwt"`
+	Sheet    SheetConfig    `yaml:"sheet"`
+}
+
+type SheetConfig struct {
+	Width  uint `yaml:"width"`
+	Height uint `yaml:"height"`
 }
 
 type Config struct {

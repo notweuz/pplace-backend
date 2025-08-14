@@ -1,6 +1,9 @@
 pplace:
   port: 8080
-  version: 0.1
+  version: "0.0-dev"
+  sheet:
+    width: 500
+    height: 500
   database:
     host: "https://example.com/"
     port: 5432
