@@ -37,7 +37,7 @@ func main() {
 	}
 	log.Println("Connected to database")
 
-	err = db.AutoMigrate(&model.User{})
+	err = db.AutoMigrate(&model.User{}, &model.Info{})
 	if err != nil {
 		log.Fatal("Migration error: ", err)
 	}
