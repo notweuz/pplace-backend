@@ -37,6 +37,15 @@ func (us *UserService) Update(user *model.User) (*model.User, *error2.HttpError)
 	return result, nil
 }
 
+func (us *UserService) GetByID(id uint) (model.User, error) {
+	result, err := us.repository.GetById(id)
+	if err != nil {
+		return model.User{}, err
+	}
+
+	return *result, nil
+}
+
 func (us *UserService) GetByUsername(username string) (*model.User, error) {
 	result, err := us.repository.GetByUsername(username)
 	if err != nil {

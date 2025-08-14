@@ -35,6 +35,7 @@ func NewRouter(app *fiber.App, userController *controller.UserController, authCo
 	pixelRoute := router.app.Group("/pixels")
 	pixelRoute.Get("/", router.pixelController.GetAllPixels)
 	pixelRoute.Post("/", router.pixelController.PlacePixel)
+	pixelRoute.Get("/:x/:y", router.pixelController.GetPixelByCoordinates)
 
 	return router
 }

@@ -58,6 +58,12 @@ func (ps *PixelService) GetPixelByCoordinates(x, y uint) (*model.Pixel, *error2.
 		return nil, error2.NewHttpError(fiber.StatusNotFound, "Pixel not found")
 	}
 
+	user, err1 := ps.userService.GetByID(pixel.UserID)
+	if err1 != nil {
+		return nil, error2.NewHttpError(fiber.StatusInternalServerError, "Error while getting user", err1.Error())
+	}
+	pixel.User = user
+
 	return pixel, nil
 }
 
