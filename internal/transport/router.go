@@ -6,18 +6,20 @@ import (
 )
 
 type Router struct {
-	app            *fiber.App
-	userController *controller.UserController
-	authController *controller.AuthController
-	infoController *controller.InfoController
+	app             *fiber.App
+	userController  *controller.UserController
+	authController  *controller.AuthController
+	infoController  *controller.InfoController
+	pixelController *controller.PixelController
 }
 
-func NewRouter(app *fiber.App, userController *controller.UserController, authController *controller.AuthController, infoController *controller.InfoController) Router {
+func NewRouter(app *fiber.App, userController *controller.UserController, authController *controller.AuthController, infoController *controller.InfoController, pixelController *controller.PixelController) Router {
 	router := Router{
-		app:            app,
-		userController: userController,
-		authController: authController,
-		infoController: infoController,
+		app:             app,
+		userController:  userController,
+		authController:  authController,
+		infoController:  infoController,
+		pixelController: pixelController,
 	}
 
 	usersRoute := router.app.Group("/users")
@@ -29,6 +31,9 @@ func NewRouter(app *fiber.App, userController *controller.UserController, authCo
 
 	infoRoute := router.app.Group("/info")
 	infoRoute.Get("/", router.infoController.GetPixelSheetInfo)
+
+	pixelRoute := router.app.Group("/pixels")
+	pixelRoute.Get("/", router.pixelController.GetAllPixels)
 
 	return router
 }

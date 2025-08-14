@@ -37,7 +37,7 @@ func main() {
 	}
 	log.Println("Connected to database")
 
-	err = db.AutoMigrate(&model.User{})
+	err = db.AutoMigrate(&model.User{}, &model.Pixel{})
 	if err != nil {
 		log.Fatal("Migration error: ", err)
 	}
@@ -48,9 +48,10 @@ func main() {
 	userLayer := layer.NewUserLayer(db, &config.PPlace)
 	authLayer := layer.NewAuthLayer(userLayer.Service, &config.PPlace)
 	infoLayer := layer.NewInfoLayer(&config.PPlace)
+	pixelLayer := layer.NewPixelLayer(db, &config.PPlace)
 	log.Println("Created layers")
 
-	_ = transport.NewRouter(app, userLayer.Controller, authLayer.Controller, infoLayer.Controller)
+	_ = transport.NewRouter(app, userLayer.Controller, authLayer.Controller, infoLayer.Controller, pixelLayer.Controller)
 	log.Println("Added routes")
 
 	log.Fatal(app.Listen(":" + strconv.Itoa(int(config.PPlace.Port))))
