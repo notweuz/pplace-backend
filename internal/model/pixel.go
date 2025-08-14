@@ -1,10 +1,10 @@
 package model
 
 type Pixel struct {
-	ID     uint `gorm:"primaryKey"`
-	X      uint `gorm:"not null"`
-	Y      uint `gorm:"not null"`
-	Color  string
+	ID     uint   `gorm:"primaryKey"`
+	X      uint   `gorm:"not null"`
+	Y      uint   `gorm:"not null"`
+	Color  string `gorm:"default:'#FFFFFF'"`
 	UserID uint
 	User   User `gorm:"foreignKey:UserID"`
 }
