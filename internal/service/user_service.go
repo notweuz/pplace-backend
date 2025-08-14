@@ -29,6 +29,14 @@ func (us *UserService) Create(user *model.User) (*model.User, error) {
 	return result, nil
 }
 
+func (us *UserService) Update(user *model.User) (*model.User, *error2.HttpError) {
+	result, err := us.repository.Update(user)
+	if err != nil {
+		return nil, error2.NewHttpError(fiber.StatusInternalServerError, "Error while updating user", err.Error())
+	}
+	return result, nil
+}
+
 func (us *UserService) GetByUsername(username string) (*model.User, error) {
 	result, err := us.repository.GetByUsername(username)
 	if err != nil {
@@ -72,7 +80,7 @@ func (us *UserService) GetCurrentUser(ctx *fiber.Ctx) (*model.User, *error2.Http
 		return nil, error2.NewHttpError(fiber.StatusUnauthorized, "Invalid authorization header")
 	}
 
-	userID := idClaim.(uint)
+	userID := uint(idClaim.(float64))
 
 	user, err := us.repository.GetById(userID)
 	if err != nil {

@@ -26,7 +26,7 @@ func (uc *UserController) GetSelfInfo(ctx *fiber.Ctx) error {
 	}
 
 	userDto := response.UserDto{
-		Id:       info.ID,
+		ID:       info.ID,
 		Username: info.Username,
 	}
 

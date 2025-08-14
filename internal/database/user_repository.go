@@ -19,6 +19,11 @@ func (ur *UserRepository) Create(user *model.User) (*model.User, error) {
 	return user, result.Error
 }
 
+func (ur *UserRepository) Update(user *model.User) (*model.User, error) {
+	result := ur.db.Save(user)
+	return user, result.Error
+}
+
 func (ur *UserRepository) GetById(id uint) (*model.User, error) {
 	var user model.User
 	result := ur.db.First(&user, id)

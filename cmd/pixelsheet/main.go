@@ -48,7 +48,7 @@ func main() {
 	userLayer := layer.NewUserLayer(db, &config.PPlace)
 	authLayer := layer.NewAuthLayer(userLayer.Service, &config.PPlace)
 	infoLayer := layer.NewInfoLayer(&config.PPlace)
-	pixelLayer := layer.NewPixelLayer(db, &config.PPlace)
+	pixelLayer := layer.NewPixelLayer(db, &config.PPlace, userLayer.Service)
 	log.Println("Created layers")
 
 	_ = transport.NewRouter(app, userLayer.Controller, authLayer.Controller, infoLayer.Controller, pixelLayer.Controller)
