@@ -20,23 +20,28 @@ func NewAuthService(userService *UserService, config *config.PPlaceConfig) AuthS
 	return AuthService{userService: userService, config: config}
 }
 
-func (s *AuthService) Register(dto request.AuthDto) (response.AuthTokenDto, error) {
-	if _, err := s.userService.GetByUsername(dto.Username); err == nil {
-		return response.AuthTokenDto{}, fmt.Errorf("username exists")
+func (s *AuthService) Register(dto request.AuthDto) (*response.AuthTokenDto, error) {
+	user, err := s.userService.GetByUsername(dto.Username)
+	if err != nil {
+		return nil, err
+	}
+
+	if user != nil {
+		return nil, fmt.Errorf("username exists")
 	}
 
 	password, _ := bcrypt.GenerateFromPassword([]byte(dto.Password), bcrypt.DefaultCost)
 
-	user := model.User{
+	user = &model.User{
 		Username:   dto.Username,
 		Password:   password,
 		LastPlaced: time.Now(),
 		Active:     true,
 	}
 
-	createdUser, err := s.userService.Create(&user)
+	createdUser, err := s.userService.Create(user)
 	if err != nil {
-		return response.AuthTokenDto{}, err
+		return nil, err
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
@@ -47,18 +52,32 @@ func (s *AuthService) Register(dto request.AuthDto) (response.AuthTokenDto, erro
 
 	tokenString, err := token.SignedString([]byte(s.config.JWT.Secret))
 	if err != nil {
-		return response.AuthTokenDto{}, fmt.Errorf("failed to generate token: %w", err)
+		return nil, fmt.Errorf("failed to generate token: %w", err)
 	}
 
-	return response.AuthTokenDto{Token: tokenString}, nil
+	return &response.AuthTokenDto{Token: tokenString}, nil
 }
 
-func (s *AuthService) Login(dto request.AuthDto) error {
-	//user, err := s.userService.GetByUsername(dto.Username)
-	//if err != nil {
-	//	return err
-	//}
+func (s *AuthService) Login(dto request.AuthDto) (*response.AuthTokenDto, error) {
+	user, err := s.userService.GetByUsername(dto.Username)
+	if err != nil || user == nil {
+		return nil, fmt.Errorf("user does not exist")
+	}
 
-	//return c.JSON(user)
-	return nil
+	if err := bcrypt.CompareHashAndPassword(user.Password, []byte(dto.Password)); err != nil {
+		return nil, fmt.Errorf("invalid credentials")
+	}
+
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+		"id":       user.ID,
+		"username": user.Username,
+		"exp":      time.Now().Add(time.Hour * time.Duration(s.config.JWT.Expiration)).Unix(),
+	})
+
+	tokenString, err := token.SignedString([]byte(s.config.JWT.Secret))
+	if err != nil {
+		return nil, fmt.Errorf("failed to generate token: %w", err)
+	}
+
+	return &response.AuthTokenDto{Token: tokenString}, nil
 }

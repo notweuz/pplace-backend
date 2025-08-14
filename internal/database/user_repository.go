@@ -31,9 +31,9 @@ func (ur *UserRepository) GetById(id uint) (*model.User, error) {
 
 func (ur *UserRepository) GetByUsername(username string) (*model.User, error) {
 	var user model.User
-	result := ur.db.Where("username = ?", username).First(&user)
+	result := ur.db.Where("username = ?", username).Limit(1).Find(&user)
 
-	if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+	if result.RowsAffected == 0 {
 		return nil, nil
 	}
 

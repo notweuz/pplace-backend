@@ -42,3 +42,35 @@ func (c *AuthController) Register(ctx *fiber.Ctx) error {
 
 	return ctx.Status(fiber.StatusCreated).JSON(token)
 }
+
+func (c *AuthController) Login(ctx *fiber.Ctx) error {
+	var data request.AuthDto
+
+	if err := ctx.BodyParser(&data); err != nil {
+		return err
+	}
+
+	errors := validation.ValidateDTO(&data)
+	if errors != nil {
+		return ctx.Status(fiber.StatusBadRequest).JSON(errors)
+	}
+
+	token, err := c.service.Login(data)
+	if err != nil {
+		if err.Error() == "invalid credentials" {
+			return ctx.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+				"error": "Wrong username or password provided",
+			})
+		} else if err.Error() == "user does not exist" {
+			return ctx.Status(fiber.StatusNotFound).JSON(fiber.Map{
+				"error": "User does not exist",
+			})
+		} else {
+			return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+				"error": err.Error(),
+			})
+		}
+	}
+
+	return ctx.Status(fiber.StatusOK).JSON(token)
+}
