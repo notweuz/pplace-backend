@@ -3,6 +3,7 @@ package controller
 import (
 	"github.com/gofiber/fiber/v2"
 	"pplace_backend/internal/model/dto/request"
+	"pplace_backend/internal/model/dto/response"
 	"pplace_backend/internal/service"
 	"pplace_backend/internal/validation"
 )
@@ -29,15 +30,12 @@ func (c *AuthController) Register(ctx *fiber.Ctx) error {
 
 	token, err := c.service.Register(data)
 	if err != nil {
-		if err.Error() == "username exists" {
-			return ctx.Status(fiber.StatusConflict).JSON(fiber.Map{
-				"error": "Username already exists",
-			})
+		errorDto := response.HttpErrorDto{
+			StatusCode: err.StatusCode,
+			Message:    err.Message,
+			Errors:     err.Errors,
 		}
-
-		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": err.Error(),
-		})
+		return ctx.Status(err.StatusCode).JSON(errorDto)
 	}
 
 	return ctx.Status(fiber.StatusCreated).JSON(token)
@@ -57,19 +55,12 @@ func (c *AuthController) Login(ctx *fiber.Ctx) error {
 
 	token, err := c.service.Login(data)
 	if err != nil {
-		if err.Error() == "invalid credentials" {
-			return ctx.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-				"error": "Wrong username or password provided",
-			})
-		} else if err.Error() == "user does not exist" {
-			return ctx.Status(fiber.StatusNotFound).JSON(fiber.Map{
-				"error": "User does not exist",
-			})
-		} else {
-			return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-				"error": err.Error(),
-			})
+		errorDto := response.HttpErrorDto{
+			StatusCode: err.StatusCode,
+			Message:    err.Message,
+			Errors:     err.Errors,
 		}
+		return ctx.Status(err.StatusCode).JSON(errorDto)
 	}
 
 	return ctx.Status(fiber.StatusOK).JSON(token)
