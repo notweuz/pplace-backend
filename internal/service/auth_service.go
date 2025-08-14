@@ -1,22 +1,26 @@
 package service
 
 import (
-	"github.com/gofiber/fiber/v2"
+	"fmt"
+	"github.com/golang-jwt/jwt/v5"
 	"golang.org/x/crypto/bcrypt"
+	"pplace_backend/internal/config"
 	"pplace_backend/internal/model"
 	"pplace_backend/internal/model/dto/request"
+	"pplace_backend/internal/model/dto/response"
 	"time"
 )
 
 type AuthService struct {
 	userService *UserService
+	config      *config.PPlaceConfig
 }
 
-func NewAuthService(userService *UserService) AuthService {
-	return AuthService{userService: userService}
+func NewAuthService(userService *UserService, config *config.PPlaceConfig) AuthService {
+	return AuthService{userService: userService, config: config}
 }
 
-func (s *AuthService) Register(dto request.AuthDto) error {
+func (s *AuthService) Register(dto request.AuthDto) (response.AuthTokenDto, error) {
 	password, _ := bcrypt.GenerateFromPassword([]byte(dto.Password), bcrypt.DefaultCost)
 
 	user := model.User{
@@ -26,27 +30,31 @@ func (s *AuthService) Register(dto request.AuthDto) error {
 		Active:     true,
 	}
 
-	_, err := s.userService.Create(&user)
+	createdUser, err := s.userService.Create(&user)
 	if err != nil {
-		return err
+		return response.AuthTokenDto{}, err
 	}
 
-	return nil
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+		"id":       createdUser.ID,
+		"username": createdUser.Username,
+		"exp":      time.Now().Add(time.Hour * time.Duration(s.config.JWT.Expiration)).Unix(),
+	})
+
+	tokenString, err := token.SignedString([]byte(s.config.JWT.Secret))
+	if err != nil {
+		return response.AuthTokenDto{}, fmt.Errorf("failed to generate token: %w", err)
+	}
+
+	return response.AuthTokenDto{Token: tokenString}, nil
 }
 
 func (s *AuthService) Login(dto request.AuthDto) error {
-	user, err := s.userService.GetByUsername(dto.Username)
-	if err != nil {
-		return err
-	}
+	//user, err := s.userService.GetByUsername(dto.Username)
+	//if err != nil {
+	//	return err
+	//}
 
-	if err := bcrypt.CompareHashAndPassword(user.Password, []byte(data["password"])); err != nil {
-		c.Status(fiber.StatusBadRequest)
-		return c.JSON(fiber.Map{
-			"message": "incorrect password",
-		})
-	}
-
-	return c.JSON(user)
-
+	//return c.JSON(user)
+	return nil
 }

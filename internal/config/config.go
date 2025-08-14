@@ -8,10 +8,16 @@ type DatabaseConfig struct {
 	DBName   string `yaml:"dbname"`
 }
 
+type JWTConfig struct {
+	Secret     string `yaml:"secret"`
+	Expiration int    `yaml:"expiration"`
+}
+
 type PPlaceConfig struct {
 	Port     uint           `yaml:"port"`
 	Version  float32        `yaml:"version"`
 	Database DatabaseConfig `yaml:"database"`
+	JWT      JWTConfig      `yaml:"jwt"`
 }
 
 type Config struct {

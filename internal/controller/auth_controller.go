@@ -27,5 +27,12 @@ func (c *AuthController) Register(ctx *fiber.Ctx) error {
 		return ctx.Status(fiber.StatusBadRequest).JSON(errors)
 	}
 
-	return ctx.JSON(data)
+	token, err := c.service.Register(data)
+	if err != nil {
+		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": err.Error(),
+		})
+	}
+
+	return ctx.Status(fiber.StatusCreated).JSON(token)
 }

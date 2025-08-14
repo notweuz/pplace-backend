@@ -7,3 +7,6 @@ pplace:
     user: "user"
     password: "pass"
     dbname: "pplace"
+  jwt:
+    secret: "code"
+    expiration: 720
