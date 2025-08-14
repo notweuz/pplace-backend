@@ -59,7 +59,7 @@ func (us *UserService) GetCurrentUser(ctx *fiber.Ctx) (*model.User, *error2.Http
 	})
 
 	if err != nil {
-		return nil, error2.NewHttpError(fiber.StatusUnauthorized, "Invalid authorization header")
+		return nil, error2.NewHttpError(fiber.StatusUnauthorized, "Invalid authorization header", err.Error())
 	}
 
 	claims, ok := token.Claims.(jwt.MapClaims)
@@ -76,7 +76,7 @@ func (us *UserService) GetCurrentUser(ctx *fiber.Ctx) (*model.User, *error2.Http
 
 	user, err := us.repository.GetById(userID)
 	if err != nil {
-		return nil, error2.NewHttpError(fiber.StatusUnauthorized, fmt.Sprintf("User with id %d not found", userID))
+		return nil, error2.NewHttpError(fiber.StatusUnauthorized, fmt.Sprintf("User with id %d not found", userID), err.Error())
 	}
 
 	return user, nil

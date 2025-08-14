@@ -20,6 +20,7 @@ func (uc *UserController) GetSelfInfo(ctx *fiber.Ctx) error {
 		errorDto := response.HttpErrorDto{
 			StatusCode: err.StatusCode,
 			Message:    err.Message,
+			Errors:     err.Errors,
 		}
 		return ctx.Status(err.StatusCode).JSON(errorDto)
 	}

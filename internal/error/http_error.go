@@ -5,12 +5,14 @@ import "fmt"
 type HttpError struct {
 	StatusCode int
 	Message    string
+	Errors     []string
 }
 
-func NewHttpError(statusCode int, message string) *HttpError {
+func NewHttpError(statusCode int, message string, errors ...string) *HttpError {
 	return &HttpError{
 		StatusCode: statusCode,
 		Message:    message,
+		Errors:     errors,
 	}
 }
 
