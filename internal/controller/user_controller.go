@@ -2,7 +2,6 @@ package controller
 
 import (
 	"github.com/gofiber/fiber/v2"
-	"log"
 	"pplace_backend/internal/model/dto/response"
 	"pplace_backend/internal/service"
 )
@@ -18,10 +17,11 @@ func NewUserController(service *service.UserService) UserController {
 func (uc *UserController) GetSelfInfo(ctx *fiber.Ctx) error {
 	info, err := uc.service.GetSelfInfo(ctx)
 	if err != nil {
-		log.Println("GetSelfInfo error:", err)
-		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": "Failed to get user info",
-		})
+		errorDto := response.HttpErrorDto{
+			StatusCode: err.StatusCode,
+			Message:    err.Message,
+		}
+		return ctx.Status(err.StatusCode).JSON(errorDto)
 	}
 
 	userDto := response.UserDto{

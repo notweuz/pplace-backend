@@ -1,17 +1,22 @@
 package service
 
 import (
+	"fmt"
 	"github.com/gofiber/fiber/v2"
+	"github.com/golang-jwt/jwt/v5"
+	"pplace_backend/internal/config"
 	"pplace_backend/internal/database"
+	error2 "pplace_backend/internal/error"
 	"pplace_backend/internal/model"
 )
 
 type UserService struct {
 	repository *database.UserRepository
+	config     *config.PPlaceConfig
 }
 
-func NewUserService(repository *database.UserRepository) UserService {
-	return UserService{repository: repository}
+func NewUserService(repository *database.UserRepository, conf *config.PPlaceConfig) UserService {
+	return UserService{repository: repository, config: conf}
 }
 
 func (us *UserService) Create(user *model.User) (*model.User, error) {
@@ -33,6 +38,46 @@ func (us *UserService) GetByUsername(username string) (*model.User, error) {
 	return result, nil
 }
 
-func (us *UserService) GetSelfInfo(ctx *fiber.Ctx) (*model.User, error) {
-	return nil, nil
+func (us *UserService) GetSelfInfo(ctx *fiber.Ctx) (*model.User, *error2.HttpError) {
+	user, err := us.GetCurrentUser(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return user, nil
+}
+
+func (us *UserService) GetCurrentUser(ctx *fiber.Ctx) (*model.User, *error2.HttpError) {
+	header := ctx.Get("Authorization")
+	if len(header) < 7 {
+		return nil, error2.NewHttpError(fiber.StatusUnauthorized, "Invalid authorization header")
+	}
+
+	headerToken := header[7:]
+
+	token, err := jwt.Parse(headerToken, func(token *jwt.Token) (any, error) {
+		return []byte(us.config.JWT.Secret), nil
+	})
+
+	if err != nil {
+		return nil, error2.NewHttpError(fiber.StatusUnauthorized, "Invalid authorization header")
+	}
+
+	claims, ok := token.Claims.(jwt.MapClaims)
+	if !ok || !token.Valid {
+		return nil, error2.NewHttpError(fiber.StatusUnauthorized, "Invalid authorization header")
+	}
+
+	idClaim, exists := claims["id"]
+	if !exists || idClaim == nil {
+		return nil, error2.NewHttpError(fiber.StatusUnauthorized, "Invalid authorization header")
+	}
+
+	userID := idClaim.(uint)
+
+	user, err := us.repository.GetById(userID)
+	if err != nil {
+		return nil, error2.NewHttpError(fiber.StatusUnauthorized, fmt.Sprintf("User with id %d not found", userID))
+	}
+
+	return user, nil
 }

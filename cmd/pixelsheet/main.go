@@ -45,7 +45,7 @@ func main() {
 
 	app := fiber.New()
 
-	userLayer := layer.NewUserLayer(db)
+	userLayer := layer.NewUserLayer(db, &config.PPlace)
 	authLayer := layer.NewAuthLayer(userLayer.Service, &config.PPlace)
 	log.Println("Created layers")
 
