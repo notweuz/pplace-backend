@@ -10,7 +10,7 @@ type User struct {
 	Username    string `gorm:"unique"`
 	Password    []byte
 	LastPlaced  time.Time
-	Active      bool
-	Admin       bool
-	PixelsStock uint
+	Active      bool `gorm:"default:true"`
+	Admin       bool `gorm:"not null,default:false"`
+	PixelsStock uint `gorm:"default:1"`
 }
