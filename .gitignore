@@ -1,5 +1,2 @@
 /configs/application.yml
 /.idea/*
-
-#idk anything about go.sum but ig it should be ignored
-go.sum
