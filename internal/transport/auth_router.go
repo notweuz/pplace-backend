@@ -5,10 +5,13 @@ import (
 	"pplace_backend/internal/layer/service"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/rs/zerolog/log"
 )
 
 func SetupAuthRoutes(app *fiber.App, service *service.AuthService) {
 	authHandler := handler.NewAuthHandler(service)
+
+	log.Info().Msg("Setting up auth routes")
 
 	app.Post("/api/auth/register", authHandler.Register)
 	app.Post("/api/auth/login", authHandler.Login)

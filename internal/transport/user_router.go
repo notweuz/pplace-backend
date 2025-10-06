@@ -6,11 +6,14 @@ import (
 	"pplace_backend/internal/layer/service"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/rs/zerolog/log"
 )
 
 func SetupUserRoutes(app *fiber.App, service *service.UserService) {
 	userHandler := handler.NewUserHandler(service)
 	authMiddleware := middleware.AuthMiddleware(service)
+
+	log.Info().Msg("Setting up user routes")
 
 	app.Post("/api/users", userHandler.CreateUser)
 	app.Get("/api/users/:id", userHandler.GetUserByID)
