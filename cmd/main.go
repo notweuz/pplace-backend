@@ -53,7 +53,11 @@ func main() {
 	// TODO: add http logging middleware
 	log.Info().Msg("Initializing fiber application")
 
-	transport.SetupUserRoutes(app, setupUserLayer(db, &config.PPlace))
+	userService := setupUserService(db, &config.PPlace)
+	authService := setupAuthService(db, &config.PPlace, userService)
+
+	transport.SetupUserRoutes(app, userService)
+	transport.SetupAuthRoutes(app, authService)
 
 	log.Info().Msgf("Starting server on port %d", config.PPlace.Port)
 	log.Fatal().Err(app.Listen(fmt.Sprintf(":%d", config.PPlace.Port)))
@@ -65,8 +69,13 @@ func setupLogger() {
 	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
 }
 
-func setupUserLayer(db *gorm.DB, c *config2.PPlaceConfig) *service.UserService {
+func setupUserService(db *gorm.DB, c *config2.PPlaceConfig) *service.UserService {
 	userDatabase := database.NewUserDatabase(db)
 	userService := service.NewUserService(userDatabase, c)
 	return userService
+}
+
+func setupAuthService(db *gorm.DB, c *config2.PPlaceConfig, us *service.UserService) *service.AuthService {
+	authService := service.NewAuthService(us, c)
+	return authService
 }
