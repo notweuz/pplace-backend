@@ -5,6 +5,7 @@ import (
 	"os"
 	config2 "pplace_backend/internal/config"
 	"pplace_backend/internal/layer/database"
+	"pplace_backend/internal/layer/middleware"
 	"pplace_backend/internal/layer/service"
 	"pplace_backend/internal/transport"
 
@@ -50,7 +51,7 @@ func main() {
 	log.Info().Msg("Migrated database successfully")
 
 	app := fiber.New()
-	// TODO: add http logging middleware
+	app.Use(middleware.LoggingMiddleware())
 	log.Info().Msg("Initializing fiber application")
 
 	userService := setupUserService(db, &config.PPlace)
@@ -67,6 +68,7 @@ func setupLogger() {
 	zerolog.TimeFieldFormat = zerolog.TimeFormatUnix
 	zerolog.ErrorStackMarshaler = pkgerrors.MarshalStack
 	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
+	zerolog.SetGlobalLevel(zerolog.InfoLevel)
 }
 
 func setupUserService(db *gorm.DB, c *config2.PPlaceConfig) *service.UserService {
