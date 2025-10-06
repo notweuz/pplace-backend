@@ -4,6 +4,9 @@ import (
 	"fmt"
 	"os"
 	config2 "pplace_backend/internal/config"
+	"pplace_backend/internal/layer/database"
+	"pplace_backend/internal/layer/service"
+	"pplace_backend/internal/transport"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/rs/zerolog"
@@ -50,7 +53,7 @@ func main() {
 	// TODO: add http logging middleware
 	log.Info().Msg("Initializing fiber application")
 
-	// Layers
+	transport.SetupUserRoutes(app, setupUserLayer(db, &config.PPlace))
 
 	log.Info().Msgf("Starting server on port %d", config.PPlace.Port)
 	log.Fatal().Err(app.Listen(fmt.Sprintf(":%d", config.PPlace.Port)))
@@ -60,4 +63,10 @@ func setupLogger() {
 	zerolog.TimeFieldFormat = zerolog.TimeFormatUnix
 	zerolog.ErrorStackMarshaler = pkgerrors.MarshalStack
 	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
+}
+
+func setupUserLayer(db *gorm.DB, c *config2.PPlaceConfig) *service.UserService {
+	userDatabase := database.NewUserDatabase(db)
+	userService := service.NewUserService(userDatabase, c)
+	return userService
 }
