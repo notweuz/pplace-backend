@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"pplace_backend/internal/config"
@@ -33,12 +34,12 @@ func (s *PixelService) Create(c *fiber.Ctx, ctx context.Context, pixel *model.Pi
 	_, err := s.GetByCoordinates(ctx, pixel.X, pixel.Y)
 	if err == nil {
 		log.Error().Uint("x", pixel.X).Uint("y", pixel.Y).Msg("Cannot create pixel, pixel on that place already exists")
-		return nil, fiber.NewError(fiber.StatusConflict, "Already exists")
+		return nil, fiber.NewError(fiber.StatusConflict, fmt.Sprintf("pixel already exists: %d, %d", pixel.X, pixel.Y))
 	}
 
 	if (pixel.X > s.config.Sheet.Width) || (pixel.X < 1) || (pixel.Y > s.config.Sheet.Height) || (pixel.Y < 1) {
 		log.Error().Uint("x", pixel.X).Uint("y", pixel.Y).Interface("current size", s.config.Sheet).Msg("Pixel coordinates out of range")
-		return nil, fiber.NewError(fiber.StatusBadRequest, "Pixel coordinates out of range")
+		return nil, fiber.NewError(fiber.StatusBadRequest, fmt.Sprintf("pixel coordinates out of range: %d, %d", pixel.X, pixel.Y))
 	}
 
 	author, err := s.userService.GetSelfInfo(c)
@@ -46,13 +47,13 @@ func (s *PixelService) Create(c *fiber.Ctx, ctx context.Context, pixel *model.Pi
 		return nil, err
 	}
 
-	isReady, err := s.checkPlaceCooldown(author)
+	isReady, dur, err := s.checkPlaceCooldown(author)
 	if err != nil {
 		return nil, err
 	}
 
 	if !isReady {
-		return nil, fiber.NewError(fiber.StatusForbidden, "Cannot create pixel, user is on cooldown")
+		return nil, fiber.NewError(fiber.StatusForbidden, fmt.Sprintf("Cannot create pixel, user is on cooldown for %s", dur.String()))
 	}
 
 	pixel.UserID = author.ID
@@ -78,13 +79,13 @@ func (s *PixelService) Update(c *fiber.Ctx, ctx context.Context, pixel *model.Pi
 		return nil, err
 	}
 
-	isReady, err := s.checkPlaceCooldown(author)
+	isReady, dur, err := s.checkPlaceCooldown(author)
 	if err != nil {
 		return nil, err
 	}
 
 	if !isReady {
-		return nil, fiber.NewError(fiber.StatusForbidden, "Cannot create pixel, user is on cooldown")
+		return nil, fiber.NewError(fiber.StatusForbidden, fmt.Sprintf("Cannot create pixel, user is on cooldown for %s", dur.String()))
 	}
 
 	oldPixel, err := s.GetByID(ctx, pixel.ID)
@@ -157,9 +158,9 @@ func (s *PixelService) Delete(c *fiber.Ctx, ctx context.Context, id uint) error 
 	return nil
 }
 
-func (s *PixelService) checkPlaceCooldown(user *model.User) (bool, error) {
+func (s *PixelService) checkPlaceCooldown(user *model.User) (bool, time.Duration, error) {
 	if user.LastPlaced.IsZero() {
-		return true, nil
+		return true, 0, nil
 	}
 
 	now := time.Now()
@@ -175,5 +176,5 @@ func (s *PixelService) checkPlaceCooldown(user *model.User) (bool, error) {
 		Bool("isAdmin", user.Admin).
 		Msg("Cooldown check")
 
-	return canPlace, nil
+	return canPlace, cooldown, nil
 }
