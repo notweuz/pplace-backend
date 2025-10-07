@@ -25,7 +25,7 @@ func ValidateDTO(dto interface{}) []Error {
 	}
 
 	err = validate.RegisterValidation("password", func(fl validator.FieldLevel) bool {
-		re := regexp.MustCompile(`^[a-zA-Z0-9!@#\$%\^&\*]+$`)
+		re := regexp.MustCompile(`^[a-zA-Z0-9!@#$%^&*()_+-]+$`)
 		return re.MatchString(fl.Field().String())
 	})
 	if err != nil {
