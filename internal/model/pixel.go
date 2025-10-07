@@ -8,3 +8,11 @@ type Pixel struct {
 	UserID uint
 	User   User `gorm:"foreignKey:UserID"`
 }
+
+func NewPixel(x, y uint, color string) *Pixel {
+	return &Pixel{
+		X:     x,
+		Y:     y,
+		Color: color,
+	}
+}

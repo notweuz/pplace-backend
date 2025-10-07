@@ -23,12 +23,17 @@ func NewPixelService(db *database.PixelDatabase, config *config.PPlaceConfig, us
 	}
 }
 
-func (s *PixelService) Create(ctx context.Context, user *model.Pixel) (*model.Pixel, error) {
-	return s.database.Create(ctx, user)
+func (s *PixelService) Create(c *fiber.Ctx, ctx context.Context, pixel *model.Pixel) (*model.Pixel, error) {
+	author, err := s.userService.GetSelfInfo(c)
+	if err != nil {
+		return nil, err
+	}
+	pixel.UserID = author.ID
+	return s.database.Create(ctx, pixel)
 }
 
-func (s *PixelService) Update(ctx context.Context, user *model.Pixel) (*model.Pixel, error) {
-	return s.database.Update(ctx, user)
+func (s *PixelService) Update(ctx context.Context, pixel *model.Pixel) (*model.Pixel, error) {
+	return s.database.Update(ctx, pixel)
 }
 
 func (s *PixelService) GetByID(ctx context.Context, id uint) (*model.Pixel, error) {

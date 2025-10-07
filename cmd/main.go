@@ -45,7 +45,7 @@ func main() {
 	}
 	log.Info().Msg("Connected to database")
 
-	err = db.AutoMigrate(&model.User{})
+	err = db.AutoMigrate(&model.User{}, &model.Pixel{})
 	if err != nil {
 		log.Fatal().Err(err).Msg("Failed to migrate database")
 	}
@@ -57,11 +57,13 @@ func main() {
 
 	userService := setupUserService(db, &config.PPlace)
 	authService := setupAuthService(db, &config.PPlace, userService)
+	pixelService := setupPixelService(db, &config.PPlace, userService)
 
 	api := app.Group("/api")
 
 	transport.SetupUserRoutes(api, userService)
 	transport.SetupAuthRoutes(api, authService)
+	transport.SetupPixelRoutes(api, pixelService)
 
 	log.Info().Msgf("Starting server on port %d", config.PPlace.Port)
 	log.Fatal().Err(app.Listen(fmt.Sprintf(":%d", config.PPlace.Port)))
@@ -83,4 +85,10 @@ func setupUserService(db *gorm.DB, c *config2.PPlaceConfig) *service2.UserServic
 func setupAuthService(db *gorm.DB, c *config2.PPlaceConfig, us *service2.UserService) *service2.AuthService {
 	authService := service2.NewAuthService(us, c)
 	return authService
+}
+
+func setupPixelService(db *gorm.DB, c *config2.PPlaceConfig, us *service2.UserService) *service2.PixelService {
+	pixelDatabase := database.NewPixelDatabase(db)
+	pixelService := service2.NewPixelService(pixelDatabase, c, us)
+	return pixelService
 }
