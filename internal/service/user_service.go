@@ -10,6 +10,7 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/golang-jwt/jwt/v5"
+	"golang.org/x/crypto/bcrypt"
 )
 
 type UserService struct {
@@ -43,6 +44,31 @@ func (s *UserService) GetSelfInfo(c *fiber.Ctx) (*model.User, error) {
 		return nil, fmt.Errorf("user not found in context")
 	}
 	return user, nil
+}
+
+func (s *UserService) UpdateProfile(ctx context.Context, userID uint, username, password string) (*model.User, error) {
+	currentUser, err := s.database.GetById(ctx, userID)
+	if err != nil || currentUser == nil {
+		return nil, fmt.Errorf("user not found: %w", err)
+	}
+
+	if username != "" {
+		existingUser, err := s.database.GetByUsername(ctx, username)
+		if err == nil && existingUser != nil && existingUser.ID != userID {
+			return nil, fmt.Errorf("username already taken")
+		}
+		currentUser.Username = username
+	}
+
+	if password != "" {
+		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+		if err != nil {
+			return nil, fmt.Errorf("error while hashing password: %w", err)
+		}
+		currentUser.Password = hashedPassword
+	}
+
+	return s.database.Update(ctx, currentUser)
 }
 
 func (s *UserService) ParseAndValidateToken(tokenString string) (*model.User, error) {

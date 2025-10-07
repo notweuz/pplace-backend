@@ -2,8 +2,11 @@ package handler
 
 import (
 	"pplace_backend/internal/model"
+	"pplace_backend/internal/model/dto/request"
 	"pplace_backend/internal/model/dto/response"
 	"pplace_backend/internal/service"
+	"pplace_backend/internal/validation"
+	"strings"
 
 	"github.com/gofiber/fiber/v2"
 )
@@ -48,10 +51,22 @@ func (h *UserHandler) CreateUser(c *fiber.Ctx) error {
 }
 
 func (h *UserHandler) UpdateUser(c *fiber.Ctx) error {
-	var user model.User
-	if err := c.BodyParser(&user); err != nil {
+	var updateData request.UpdateUserDto
+	if err := c.BodyParser(&updateData); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"error": "Invalid request body",
+		})
+	}
+
+	if errors := validation.ValidateDTO(&updateData); errors != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"errors": errors,
+		})
+	}
+
+	if updateData.Username == "" && updateData.Password == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "At least one field (username or password) must be provided",
 		})
 	}
 
@@ -62,13 +77,9 @@ func (h *UserHandler) UpdateUser(c *fiber.Ctx) error {
 		})
 	}
 
-	user.ID = currentUser.ID
-
-	updatedUser, err := h.service.Update(c.Context(), &user)
+	updatedUser, err := h.service.UpdateProfile(c.Context(), currentUser.ID, updateData.Username, updateData.Password)
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": err.Error(),
-		})
+		return h.handleUpdateError(c, err)
 	}
 
 	userDto := response.NewUserDto(updatedUser.ID, updatedUser.Username, updatedUser.LastPlaced)
@@ -111,4 +122,22 @@ func (h *UserHandler) GetUserByUsername(c *fiber.Ctx) error {
 
 	userDto := response.NewUserDto(user.ID, user.Username, user.LastPlaced)
 	return c.JSON(userDto)
+}
+
+func (h *UserHandler) handleUpdateError(c *fiber.Ctx, err error) error {
+	errMsg := err.Error()
+	switch {
+	case strings.Contains(errMsg, "already taken"):
+		return c.Status(fiber.StatusConflict).JSON(fiber.Map{
+			"error": errMsg,
+		})
+	case strings.Contains(errMsg, "not found"):
+		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
+			"error": errMsg,
+		})
+	default:
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": errMsg,
+		})
+	}
 }
