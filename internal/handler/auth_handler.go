@@ -1,9 +1,9 @@
 package handler
 
 import (
+	"pplace_backend/internal/service"
 	"strings"
 
-	"pplace_backend/internal/layer/service"
 	"pplace_backend/internal/model/dto/request"
 	"pplace_backend/internal/validation"
 

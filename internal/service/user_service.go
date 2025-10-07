@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 	"pplace_backend/internal/config"
-	"pplace_backend/internal/layer/database"
+	"pplace_backend/internal/database"
 	"pplace_backend/internal/model"
 	"strings"
 

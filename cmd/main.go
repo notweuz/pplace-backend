@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"os"
 	config2 "pplace_backend/internal/config"
-	"pplace_backend/internal/layer/database"
-	"pplace_backend/internal/layer/middleware"
-	"pplace_backend/internal/layer/service"
+	"pplace_backend/internal/database"
+	"pplace_backend/internal/middleware"
 	"pplace_backend/internal/model"
+	service2 "pplace_backend/internal/service"
 	"pplace_backend/internal/transport"
 
 	"github.com/gofiber/fiber/v2"
@@ -74,13 +74,13 @@ func setupLogger() {
 	zerolog.SetGlobalLevel(zerolog.InfoLevel)
 }
 
-func setupUserService(db *gorm.DB, c *config2.PPlaceConfig) *service.UserService {
+func setupUserService(db *gorm.DB, c *config2.PPlaceConfig) *service2.UserService {
 	userDatabase := database.NewUserDatabase(db)
-	userService := service.NewUserService(userDatabase, c)
+	userService := service2.NewUserService(userDatabase, c)
 	return userService
 }
 
-func setupAuthService(db *gorm.DB, c *config2.PPlaceConfig, us *service.UserService) *service.AuthService {
-	authService := service.NewAuthService(us, c)
+func setupAuthService(db *gorm.DB, c *config2.PPlaceConfig, us *service2.UserService) *service2.AuthService {
+	authService := service2.NewAuthService(us, c)
 	return authService
 }

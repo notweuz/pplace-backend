@@ -1,8 +1,8 @@
 package transport
 
 import (
-	"pplace_backend/internal/layer/handler"
-	"pplace_backend/internal/layer/service"
+	"pplace_backend/internal/handler"
+	"pplace_backend/internal/service"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/rs/zerolog/log"

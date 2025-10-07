@@ -1,9 +1,9 @@
 package handler
 
 import (
-	"pplace_backend/internal/layer/service"
 	"pplace_backend/internal/model"
 	"pplace_backend/internal/model/dto/response"
+	"pplace_backend/internal/service"
 
 	"github.com/gofiber/fiber/v2"
 )

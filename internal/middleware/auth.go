@@ -1,7 +1,7 @@
 package middleware
 
 import (
-	"pplace_backend/internal/layer/service"
+	"pplace_backend/internal/service"
 
 	"github.com/gofiber/fiber/v2"
 )
