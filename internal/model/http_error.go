@@ -2,8 +2,6 @@ package model
 
 import (
 	"fmt"
-
-	"github.com/rs/zerolog/log"
 )
 
 type HttpError struct {
@@ -19,7 +17,6 @@ func NewHttpError(statusCode int, message string, errors ...string) *HttpError {
 		Errors:     errors,
 	}
 
-	log.Error().Err(err).Msg(message)
 	return err
 }
 
