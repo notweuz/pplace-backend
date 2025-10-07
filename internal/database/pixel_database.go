@@ -52,3 +52,14 @@ func (d *PixelDatabase) GetAllByUserID(ctx context.Context, userId uint) ([]mode
 	var pixels []model.Pixel
 	return pixels, d.db.WithContext(ctx).Where("user_id = ?", userId).Find(&pixels).Error
 }
+
+func (d *PixelDatabase) Delete(ctx context.Context, id uint) error {
+	result := d.db.WithContext(ctx).Where("id = ?", id).Delete(&model.Pixel{})
+	if result.Error != nil {
+		return result.Error
+	}
+	if result.RowsAffected == 0 {
+		return gorm.ErrRecordNotFound
+	}
+	return nil
+}

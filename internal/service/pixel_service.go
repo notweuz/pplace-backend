@@ -78,7 +78,21 @@ func (s *PixelService) GetAllByUser(ctx context.Context, userId uint) ([]model.P
 func (s *PixelService) GetAllByUserSelf(c *fiber.Ctx, ctx context.Context) ([]model.Pixel, error) {
 	user, err := s.userService.GetSelfInfo(c)
 	if err != nil {
+		log.Error().Err(err).Msg("")
 		return nil, err
 	}
 	return s.database.GetAllByUserID(ctx, user.ID)
+}
+
+func (s *PixelService) Delete(c *fiber.Ctx, ctx context.Context, id uint) error {
+	_, err := s.userService.GetSelfInfo(c)
+	if err != nil {
+		log.Error().Err(err).Msg("")
+		return err
+	}
+	err = s.database.Delete(ctx, id)
+	if err != nil {
+		return err
+	}
+	return nil
 }

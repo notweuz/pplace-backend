@@ -31,6 +31,14 @@ func ValidateDTO(dto interface{}) []Error {
 		return nil
 	}
 
+	err = validate.RegisterValidation("color", func(fl validator.FieldLevel) bool {
+		re := regexp.MustCompile(`^#([A-Fa-f0-9]{6})$`)
+		return re.MatchString(fl.Field().String())
+	})
+	if err != nil {
+		return nil
+	}
+
 	err = validate.Struct(dto)
 	if err != nil {
 		if _, ok := err.(*validator.InvalidValidationError); ok {
