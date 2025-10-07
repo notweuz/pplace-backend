@@ -1,12 +1,13 @@
 package handler
 
 import (
+	"strings"
+
 	"pplace_backend/internal/model"
 	"pplace_backend/internal/model/dto/request"
 	"pplace_backend/internal/model/dto/response"
 	"pplace_backend/internal/service"
 	"pplace_backend/internal/validation"
-	"strings"
 
 	"github.com/gofiber/fiber/v2"
 )

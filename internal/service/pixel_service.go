@@ -2,11 +2,12 @@ package service
 
 import (
 	"context"
+	"time"
+
 	"pplace_backend/internal/config"
 	"pplace_backend/internal/database"
 	"pplace_backend/internal/model"
 	"pplace_backend/internal/ws"
-	"time"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/rs/zerolog/log"

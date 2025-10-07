@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"os"
+
 	config2 "pplace_backend/internal/config"
 	"pplace_backend/internal/database"
 	"pplace_backend/internal/middleware"

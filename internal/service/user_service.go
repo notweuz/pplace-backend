@@ -3,10 +3,11 @@ package service
 import (
 	"context"
 	"fmt"
+	"strings"
+
 	"pplace_backend/internal/config"
 	"pplace_backend/internal/database"
 	"pplace_backend/internal/model"
-	"strings"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/golang-jwt/jwt/v5"
@@ -90,7 +91,6 @@ func (s *UserService) ParseAndValidateToken(tokenString string) (*model.User, er
 		}
 		return []byte(s.config.JWT.Secret), nil
 	})
-
 	if err != nil {
 		log.Error().Err(err).Msg("Error parsing token")
 		return nil, fmt.Errorf("invalid token: %w", err)

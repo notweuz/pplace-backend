@@ -2,8 +2,9 @@ package ws
 
 import (
 	"encoding/json"
-	"pplace_backend/internal/model"
 	"time"
+
+	"pplace_backend/internal/model"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/websocket/v2"
