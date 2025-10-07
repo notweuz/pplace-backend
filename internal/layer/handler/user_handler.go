@@ -3,6 +3,7 @@ package handler
 import (
 	"pplace_backend/internal/layer/service"
 	"pplace_backend/internal/model"
+	"pplace_backend/internal/model/dto/response"
 
 	"github.com/gofiber/fiber/v2"
 )
@@ -23,7 +24,8 @@ func (h *UserHandler) GetSelfInfo(c *fiber.Ctx) error {
 		})
 	}
 
-	return c.JSON(user)
+	userDto := response.NewUserDto(user.ID, user.Username, user.LastPlaced)
+	return c.JSON(userDto)
 }
 
 func (h *UserHandler) CreateUser(c *fiber.Ctx) error {
@@ -41,7 +43,8 @@ func (h *UserHandler) CreateUser(c *fiber.Ctx) error {
 		})
 	}
 
-	return c.Status(fiber.StatusCreated).JSON(createdUser)
+	userDto := response.NewUserDto(createdUser.ID, createdUser.Username, createdUser.LastPlaced)
+	return c.Status(fiber.StatusCreated).JSON(userDto)
 }
 
 func (h *UserHandler) UpdateUser(c *fiber.Ctx) error {
@@ -68,7 +71,8 @@ func (h *UserHandler) UpdateUser(c *fiber.Ctx) error {
 		})
 	}
 
-	return c.JSON(updatedUser)
+	userDto := response.NewUserDto(updatedUser.ID, updatedUser.Username, updatedUser.LastPlaced)
+	return c.JSON(userDto)
 }
 
 func (h *UserHandler) GetUserByID(c *fiber.Ctx) error {
@@ -86,7 +90,8 @@ func (h *UserHandler) GetUserByID(c *fiber.Ctx) error {
 		})
 	}
 
-	return c.JSON(user)
+	userDto := response.NewUserDto(user.ID, user.Username, user.LastPlaced)
+	return c.JSON(userDto)
 }
 
 func (h *UserHandler) GetUserByUsername(c *fiber.Ctx) error {
@@ -104,5 +109,6 @@ func (h *UserHandler) GetUserByUsername(c *fiber.Ctx) error {
 		})
 	}
 
-	return c.JSON(user)
+	userDto := response.NewUserDto(user.ID, user.Username, user.LastPlaced)
+	return c.JSON(userDto)
 }
