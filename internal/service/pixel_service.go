@@ -25,6 +25,12 @@ func NewPixelService(db *database.PixelDatabase, config *config.PPlaceConfig, us
 }
 
 func (s *PixelService) Create(c *fiber.Ctx, ctx context.Context, pixel *model.Pixel) (*model.Pixel, error) {
+	_, err := s.GetByCoordinates(ctx, pixel.X, pixel.Y)
+	if err == nil {
+		log.Error().Uint("x", pixel.X).Uint("y", pixel.Y).Msg("Cannot create pixel, pixel on that place already exists")
+		return nil, fiber.NewError(fiber.StatusConflict, "Already exists")
+	}
+
 	author, err := s.userService.GetSelfInfo(c)
 	if err != nil {
 		log.Error().Err(err).Msg("")
