@@ -86,44 +86,21 @@ func (s *UserService) UpdateProfile(ctx context.Context, userID uint, username, 
 }
 
 func (s *UserService) ParseAndValidateToken(tokenString string) (*model.User, error) {
-	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (any, error) {
+	claims := &model.UserClaims{}
+
+	token, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (any, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-			log.Error().Msg("Unexpected signing method")
 			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
 		}
 		return []byte(s.config.JWT.Secret), nil
 	})
-	if err != nil {
-		log.Error().Err(err).Msg("Error parsing token")
+
+	if err != nil || !token.Valid {
 		return nil, fmt.Errorf("invalid token: %w", err)
 	}
 
-	claims, ok := token.Claims.(jwt.MapClaims)
-	if !ok {
-		log.Error().Err(err).Interface("claims", claims).Msg("Error parsing token")
-		return nil, fmt.Errorf("invalid token claims")
-	}
-
-	idClaim, exists := claims["id"]
-	if !exists {
-		log.Error().Err(err).Interface("claims", claims).Msg("Error parsing token")
-		return nil, fmt.Errorf("missing user ID in token")
-	}
-
-	var userID uint
-	switch v := idClaim.(type) {
-	case float64:
-		userID = uint(v)
-	case int:
-		userID = uint(v)
-	default:
-		log.Error().Err(err).Interface("claims", claims).Msg("Error parsing token")
-		return nil, fmt.Errorf("invalid user ID format")
-	}
-
-	user, err := s.database.GetById(context.Background(), userID)
+	user, err := s.database.GetById(context.Background(), claims.ID)
 	if err != nil {
-		log.Error().Err(err).Interface("user", userID).Msg("User not found in context")
 		return nil, fmt.Errorf("user not found: %w", err)
 	}
 

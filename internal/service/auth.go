@@ -86,18 +86,16 @@ func (s *AuthService) Login(ctx context.Context, dto request.AuthDto) (*response
 }
 
 func (s *AuthService) generateToken(user *model.User) (string, error) {
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"id":       user.ID,
-		"username": user.Username,
-		"exp":      time.Now().Add(time.Hour * time.Duration(s.config.JWT.Expiration)).Unix(),
-	})
-
-	tokenString, err := token.SignedString([]byte(s.config.JWT.Secret))
-	if err != nil {
-		log.Error().Err(err).Msg("Failed to sign token")
-		return "", err
+	claims := model.UserClaims{
+		ID: user.ID,
+		RegisteredClaims: jwt.RegisteredClaims{
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Hour * time.Duration(s.config.JWT.Expiration))),
+			IssuedAt:  jwt.NewNumericDate(time.Now()),
+			Issuer:    "pplace_backend",
+			Subject:   fmt.Sprintf("%d", user.ID),
+		},
 	}
 
-	log.Info().Msg("Token generated successfully")
-	return tokenString, nil
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	return token.SignedString([]byte(s.config.JWT.Secret))
 }
