@@ -32,7 +32,7 @@ func (s *PixelService) Create(c *fiber.Ctx, ctx context.Context, pixel *model.Pi
 	}
 
 	if (pixel.X > s.config.Sheet.Width) || (pixel.X < 1) || (pixel.Y > s.config.Sheet.Height) || (pixel.Y < 1) {
-		log.Error().Uint("x", pixel.X).Uint("y", pixel.Y).Msg("Pixel coordinates out of range")
+		log.Error().Uint("x", pixel.X).Uint("y", pixel.Y).Interface("current size", s.config.Sheet).Msg("Pixel coordinates out of range")
 		return nil, fiber.NewError(fiber.StatusBadRequest, "Pixel coordinates out of range")
 	}
 
