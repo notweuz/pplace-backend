@@ -7,6 +7,7 @@ import (
 	"pplace_backend/internal/layer/database"
 	"pplace_backend/internal/layer/middleware"
 	"pplace_backend/internal/layer/service"
+	"pplace_backend/internal/model"
 	"pplace_backend/internal/transport"
 
 	"github.com/gofiber/fiber/v2"
@@ -44,7 +45,7 @@ func main() {
 	}
 	log.Info().Msg("Connected to database")
 
-	err = db.AutoMigrate()
+	err = db.AutoMigrate(&model.User{})
 	if err != nil {
 		log.Fatal().Err(err).Msg("Failed to migrate database")
 	}
