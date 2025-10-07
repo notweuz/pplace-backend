@@ -1,7 +1,7 @@
 package handler
 
 import (
-	"pplace_backend/internal/model"
+	"pplace_backend/internal/model/dto/response"
 	"pplace_backend/internal/service"
 
 	"pplace_backend/internal/model/dto/request"
@@ -21,7 +21,7 @@ func NewAuthHandler(authService *service.AuthService) *AuthHandler {
 func (h *AuthHandler) Register(c *fiber.Ctx) error {
 	var data request.AuthDto
 	if err := c.BodyParser(&data); err != nil {
-		return model.NewHttpError(fiber.StatusBadRequest, "Wrong request body provided", []string{err.Error()})
+		return response.NewHttpError(fiber.StatusBadRequest, "Wrong request body provided", []string{err.Error()})
 	}
 
 	if errors := validation.ValidateDTO(&data); errors != nil {
@@ -29,7 +29,7 @@ func (h *AuthHandler) Register(c *fiber.Ctx) error {
 		for i, err := range errors {
 			stringErrors[i] = err.Error
 		}
-		return model.NewHttpError(fiber.StatusBadRequest, "Request body validation failed", stringErrors)
+		return response.NewHttpError(fiber.StatusBadRequest, "Request body validation failed", stringErrors)
 	}
 
 	token, err := h.authService.Register(c.Context(), data)
@@ -43,7 +43,7 @@ func (h *AuthHandler) Register(c *fiber.Ctx) error {
 func (h *AuthHandler) Login(c *fiber.Ctx) error {
 	var data request.AuthDto
 	if err := c.BodyParser(&data); err != nil {
-		return model.NewHttpError(fiber.StatusBadRequest, "Wrong request body provided", []string{err.Error()})
+		return response.NewHttpError(fiber.StatusBadRequest, "Wrong request body provided", []string{err.Error()})
 	}
 
 	if errors := validation.ValidateDTO(&data); errors != nil {
@@ -51,7 +51,7 @@ func (h *AuthHandler) Login(c *fiber.Ctx) error {
 		for i, err := range errors {
 			stringErrors[i] = err.Error
 		}
-		return model.NewHttpError(fiber.StatusBadRequest, "Request body validation failed", stringErrors)
+		return response.NewHttpError(fiber.StatusBadRequest, "Request body validation failed", stringErrors)
 	}
 
 	token, err := h.authService.Login(c.Context(), data)
