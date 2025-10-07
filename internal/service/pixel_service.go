@@ -152,13 +152,14 @@ func (s *PixelService) checkPlaceCooldown(user *model.User, ctx context.Context)
 	now := time.Now()
 	elapsed := now.Sub(user.LastPlaced)
 	cooldown := time.Duration(s.config.Sheet.PlaceCooldown) * time.Millisecond
-	canPlace := elapsed >= cooldown
+	canPlace := elapsed >= cooldown || user.Admin
 
 	log.Info().
 		Uint("userId", user.ID).
 		Dur("elapsed", elapsed).
 		Dur("cooldown", cooldown).
 		Bool("canPlace", canPlace).
+		Bool("isAdmin", user.Admin).
 		Msg("Cooldown check")
 
 	return canPlace, nil
