@@ -2,8 +2,9 @@ package transport
 
 import (
 	"pplace_backend/internal/handler"
-	"pplace_backend/internal/middleware" // Добавить импорт
+	"pplace_backend/internal/middleware"
 	"pplace_backend/internal/service"
+	"pplace_backend/internal/ws"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/rs/zerolog/log"
@@ -19,6 +20,7 @@ func SetupPixelRoutes(group fiber.Router, service *service.PixelService, userSer
 	pixelsGroup.Post("/", authMiddleware, pixelHandler.Create)
 	pixelsGroup.Get("/", pixelHandler.GetAll)
 	pixelsGroup.Get("/search", pixelHandler.GetByCoordinates)
+	pixelsGroup.Get("/ws", ws.WebsocketHandler())
 	pixelsGroup.Patch("/:id", authMiddleware, pixelHandler.Update)
 	pixelsGroup.Delete("/:id", authMiddleware, pixelHandler.Delete)
 }

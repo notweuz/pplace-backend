@@ -5,6 +5,7 @@ import (
 	"pplace_backend/internal/config"
 	"pplace_backend/internal/database"
 	"pplace_backend/internal/model"
+	"pplace_backend/internal/ws"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
@@ -61,7 +62,11 @@ func (s *PixelService) Create(c *fiber.Ctx, ctx context.Context, pixel *model.Pi
 	}
 
 	log.Info().Uint("x", pixel.X).Uint("y", pixel.Y).Interface("color", pixel.Color).Msg("Creating pixel")
-	return s.database.Create(ctx, pixel)
+	created, err := s.database.Create(ctx, pixel)
+	if err == nil {
+		go ws.BroadcastPixel("create", created)
+	}
+	return created, err
 }
 
 func (s *PixelService) Update(c *fiber.Ctx, ctx context.Context, pixel *model.Pixel) (*model.Pixel, error) {
@@ -98,7 +103,11 @@ func (s *PixelService) Update(c *fiber.Ctx, ctx context.Context, pixel *model.Pi
 	}
 
 	log.Info().Uint("id", pixel.ID).Uint("x", pixel.X).Uint("y", pixel.Y).Interface("color", pixel.Color).Msg("Updating pixel")
-	return s.database.Update(ctx, pixel)
+	updated, err := s.database.Update(ctx, pixel)
+	if err == nil {
+		go ws.BroadcastPixel("update", updated)
+	}
+	return updated, err
 }
 
 func (s *PixelService) GetByID(ctx context.Context, id uint) (*model.Pixel, error) {
@@ -141,6 +150,7 @@ func (s *PixelService) Delete(c *fiber.Ctx, ctx context.Context, id uint) error 
 		return err
 	}
 	log.Info().Uint("id", id).Msg("Deleted pixel")
+	go ws.BroadcastPixelDelete(id, 0, 0)
 	return nil
 }
 

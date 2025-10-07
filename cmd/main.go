@@ -9,6 +9,7 @@ import (
 	"pplace_backend/internal/model"
 	service2 "pplace_backend/internal/service"
 	"pplace_backend/internal/transport"
+	"pplace_backend/internal/ws"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/rs/zerolog"
@@ -61,6 +62,8 @@ func main() {
 	authService := setupAuthService(db, &config.PPlace, userService)
 	pixelService := setupPixelService(db, &config.PPlace, userService)
 	infoService := setupInfoService(&config.PPlace)
+
+	ws.Start()
 
 	api := app.Group("/api")
 	transport.SetupUserRoutes(api, userService)
