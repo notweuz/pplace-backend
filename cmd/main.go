@@ -60,11 +60,13 @@ func main() {
 	userService := setupUserService(db, &config.PPlace)
 	authService := setupAuthService(db, &config.PPlace, userService)
 	pixelService := setupPixelService(db, &config.PPlace, userService)
+	infoService := setupInfoService(&config.PPlace)
 
 	api := app.Group("/api")
 	transport.SetupUserRoutes(api, userService)
 	transport.SetupAuthRoutes(api, authService)
 	transport.SetupPixelRoutes(api, pixelService, userService)
+	transport.SetupInfoRoutes(api, infoService)
 
 	log.Info().Msgf("Starting server on port %d", config.PPlace.Port)
 	log.Fatal().Err(app.Listen(fmt.Sprintf(":%d", config.PPlace.Port)))
@@ -92,4 +94,9 @@ func setupPixelService(db *gorm.DB, c *config2.PPlaceConfig, us *service2.UserSe
 	pixelDatabase := database.NewPixelDatabase(db)
 	pixelService := service2.NewPixelService(pixelDatabase, c, us)
 	return pixelService
+}
+
+func setupInfoService(c *config2.PPlaceConfig) *service2.InfoService {
+	infoService := service2.NewInfoService(c)
+	return infoService
 }
