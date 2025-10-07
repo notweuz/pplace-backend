@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -59,6 +60,7 @@ func (s *PixelService) Create(c *fiber.Ctx, ctx context.Context, pixel *model.Pi
 	pixel.UserID = author.ID
 	author.AmountPlaced++
 	author.LastPlaced = time.Now()
+
 	_, err = s.userService.Update(ctx, author)
 	if err != nil {
 		log.Error().Int("amount placed", author.AmountPlaced).Time("last placed", author.LastPlaced).Err(err).Msg("Failed to update user after placing pixel")
@@ -70,6 +72,7 @@ func (s *PixelService) Create(c *fiber.Ctx, ctx context.Context, pixel *model.Pi
 	if err == nil {
 		go ws.BroadcastPixel("create", created)
 	}
+
 	return created, err
 }
 
@@ -90,6 +93,10 @@ func (s *PixelService) Update(c *fiber.Ctx, ctx context.Context, pixel *model.Pi
 
 	oldPixel, err := s.GetByID(ctx, pixel.ID)
 	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			log.Error().Uint("id", pixel.ID).Msg("Pixel not found")
+			return nil, fiber.NewError(fiber.StatusNotFound, "Pixel not found")
+		}
 		log.Error().Err(err).Msg("Failed to get pixel by ID")
 		return nil, err
 	}
@@ -97,9 +104,9 @@ func (s *PixelService) Update(c *fiber.Ctx, ctx context.Context, pixel *model.Pi
 	pixel.UserID = author.ID
 	pixel.X = oldPixel.X
 	pixel.Y = oldPixel.Y
-
 	author.AmountPlaced++
 	author.LastPlaced = time.Now()
+
 	_, err = s.userService.Update(ctx, author)
 	if err != nil {
 		log.Error().Int("amount placed", author.AmountPlaced).Time("last placed", author.LastPlaced).Err(err).Msg("Failed to update user after placing pixel")
@@ -111,6 +118,7 @@ func (s *PixelService) Update(c *fiber.Ctx, ctx context.Context, pixel *model.Pi
 	if err == nil {
 		go ws.BroadcastPixel("update", updated)
 	}
+
 	return updated, err
 }
 
@@ -139,6 +147,7 @@ func (s *PixelService) GetAllByUserSelf(c *fiber.Ctx, ctx context.Context) ([]mo
 	if err != nil {
 		return nil, err
 	}
+
 	log.Info().Uint("userId", user.ID).Msg("Getting all pixels by self user ID")
 	return s.database.GetAllByUserID(ctx, user.ID)
 }
@@ -148,11 +157,17 @@ func (s *PixelService) Delete(c *fiber.Ctx, ctx context.Context, id uint) error 
 	if err != nil {
 		return err
 	}
+
 	err = s.database.Delete(ctx, id)
 	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			log.Error().Uint("id", id).Msg("Pixel not found")
+			return fiber.NewError(fiber.StatusNotFound, "Pixel not found")
+		}
 		log.Error().Err(err).Uint("id", id).Msg("Failed to delete pixel")
 		return err
 	}
+
 	log.Info().Uint("id", id).Msg("Deleted pixel")
 	go ws.BroadcastPixelDelete(id, 0, 0)
 	return nil
