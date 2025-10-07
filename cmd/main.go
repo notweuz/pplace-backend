@@ -5,10 +5,9 @@ import (
 	"os"
 
 	config2 "pplace_backend/internal/config"
-	"pplace_backend/internal/database"
 	"pplace_backend/internal/middleware"
 	"pplace_backend/internal/model"
-	service2 "pplace_backend/internal/service"
+	"pplace_backend/internal/service"
 	"pplace_backend/internal/transport"
 	"pplace_backend/internal/ws"
 
@@ -59,10 +58,10 @@ func main() {
 	app.Use(middleware.LoggingMiddleware())
 	log.Info().Msg("Initializing fiber application")
 
-	userService := setupUserService(db, &config.PPlace)
-	authService := setupAuthService(db, &config.PPlace, userService)
-	pixelService := setupPixelService(db, &config.PPlace, userService)
-	infoService := setupInfoService(&config.PPlace)
+	userService := service.NewUserService(db, &config.PPlace)
+	authService := service.NewAuthService(userService, &config.PPlace)
+	pixelService := service.NewPixelService(db, &config.PPlace, userService)
+	infoService := service.NewInfoService(&config.PPlace)
 
 	ws.Start()
 
@@ -81,26 +80,4 @@ func setupLogger() {
 	zerolog.ErrorStackMarshaler = pkgerrors.MarshalStack
 	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
 	zerolog.SetGlobalLevel(zerolog.InfoLevel)
-}
-
-func setupUserService(db *gorm.DB, c *config2.PPlaceConfig) *service2.UserService {
-	userDatabase := database.NewUserDatabase(db)
-	userService := service2.NewUserService(userDatabase, c)
-	return userService
-}
-
-func setupAuthService(db *gorm.DB, c *config2.PPlaceConfig, us *service2.UserService) *service2.AuthService {
-	authService := service2.NewAuthService(us, c)
-	return authService
-}
-
-func setupPixelService(db *gorm.DB, c *config2.PPlaceConfig, us *service2.UserService) *service2.PixelService {
-	pixelDatabase := database.NewPixelDatabase(db)
-	pixelService := service2.NewPixelService(pixelDatabase, c, us)
-	return pixelService
-}
-
-func setupInfoService(c *config2.PPlaceConfig) *service2.InfoService {
-	infoService := service2.NewInfoService(c)
-	return infoService
 }

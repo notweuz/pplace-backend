@@ -13,6 +13,7 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/rs/zerolog/log"
 	"golang.org/x/crypto/bcrypt"
+	"gorm.io/gorm"
 )
 
 type UserService struct {
@@ -20,8 +21,9 @@ type UserService struct {
 	config   *config.PPlaceConfig
 }
 
-func NewUserService(db *database.UserDatabase, c *config.PPlaceConfig) *UserService {
-	return &UserService{database: db, config: c}
+func NewUserService(db *gorm.DB, c *config.PPlaceConfig) *UserService {
+	userDatabase := database.NewUserDatabase(db)
+	return &UserService{database: userDatabase, config: c}
 }
 
 func (s *UserService) Create(ctx context.Context, user *model.User) (*model.User, error) {

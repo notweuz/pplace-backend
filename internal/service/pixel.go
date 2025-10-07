@@ -11,6 +11,7 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/rs/zerolog/log"
+	"gorm.io/gorm"
 )
 
 type PixelService struct {
@@ -19,9 +20,10 @@ type PixelService struct {
 	userService *UserService
 }
 
-func NewPixelService(db *database.PixelDatabase, config *config.PPlaceConfig, userService *UserService) *PixelService {
+func NewPixelService(db *gorm.DB, config *config.PPlaceConfig, userService *UserService) *PixelService {
+	pixelDatabase := database.NewPixelDatabase(db)
 	return &PixelService{
-		database:    db,
+		database:    pixelDatabase,
 		config:      config,
 		userService: userService,
 	}
