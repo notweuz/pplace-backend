@@ -50,7 +50,7 @@ func (s *UserService) GetSelfInfo(c *fiber.Ctx) (*model.User, error) {
 	user, ok := c.Locals("user").(*model.User)
 	if !ok || user == nil {
 		log.Info().Interface("user", user).Msg("User not found in context")
-		return nil, fmt.Errorf("user not found in context")
+		return nil, fiber.NewError(fiber.StatusUnauthorized, "User not found in context")
 	}
 	log.Info().Interface("username", user.Username).Msg("User found in context")
 	return user, nil
@@ -60,14 +60,14 @@ func (s *UserService) UpdateProfile(ctx context.Context, userID uint, username, 
 	currentUser, err := s.database.GetById(ctx, userID)
 	if err != nil || currentUser == nil {
 		log.Error().Err(err).Interface("user", userID).Msg("User not found in context")
-		return nil, fmt.Errorf("user not found: %w", err)
+		return nil, fiber.NewError(fiber.StatusUnauthorized, fmt.Sprintf("user not found"))
 	}
 
 	if username != "" {
 		existingUser, err := s.database.GetByUsername(ctx, username)
 		if err == nil && existingUser != nil && existingUser.ID != userID {
 			log.Error().Err(err).Interface("user", userID).Msg("User found in context")
-			return nil, fmt.Errorf("username already taken")
+			return nil, fiber.NewError(fiber.StatusConflict, fmt.Sprintf("username already taken"))
 		}
 		currentUser.Username = username
 	}
@@ -76,7 +76,7 @@ func (s *UserService) UpdateProfile(ctx context.Context, userID uint, username, 
 		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 		if err != nil {
 			log.Error().Err(err).Interface("user", userID).Msg("Error hashing password")
-			return nil, fmt.Errorf("error while hashing password: %w", err)
+			return nil, fiber.NewError(fiber.StatusInternalServerError, "Error hashing password")
 		}
 		currentUser.Password = hashedPassword
 	}
@@ -90,18 +90,18 @@ func (s *UserService) ParseAndValidateToken(tokenString string) (*model.User, er
 
 	token, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (any, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
+			return nil, fiber.NewError(fiber.StatusInternalServerError, fmt.Sprintf("unexpected signing method: %v", token.Header["alg"]))
 		}
 		return []byte(s.config.JWT.Secret), nil
 	})
 
 	if err != nil || !token.Valid {
-		return nil, fmt.Errorf("invalid token: %w", err)
+		return nil, fiber.NewError(fiber.StatusUnauthorized, "invalid token")
 	}
 
 	user, err := s.database.GetById(context.Background(), claims.ID)
 	if err != nil {
-		return nil, fmt.Errorf("user not found: %w", err)
+		return nil, fiber.NewError(fiber.StatusNotFound, "User not found")
 	}
 
 	return user, nil
@@ -111,7 +111,7 @@ func (s *UserService) ExtractToken(c *fiber.Ctx) (string, error) {
 	header := c.Get("Authorization")
 	if !strings.HasPrefix(header, "Bearer ") {
 		log.Error().Interface("header", header).Msg("Error extracting token")
-		return "", fmt.Errorf("invalid authorization header format")
+		return "", fiber.NewError(fiber.StatusBadRequest, "Invalid Authorization header format")
 	}
 	return strings.TrimPrefix(header, "Bearer "), nil
 }
