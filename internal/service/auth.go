@@ -29,7 +29,7 @@ func (s *AuthService) Register(ctx context.Context, dto request.AuthDto) (*respo
 	user, err := s.userService.GetByUsername(ctx, dto.Username)
 	if err != nil {
 		log.Error().Err(err).Msgf("UserService GetByUsername failed: %v", err)
-		return nil, fiber.NewError(fiber.StatusInternalServerError, fmt.Sprintf("error while getting user by username: %w", err))
+		return nil, fiber.NewError(fiber.StatusInternalServerError, fmt.Sprintf("error while getting user by username"))
 	}
 	if user != nil {
 		log.Warn().Msgf("User %s already exists", user.Username)
@@ -39,7 +39,7 @@ func (s *AuthService) Register(ctx context.Context, dto request.AuthDto) (*respo
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(dto.Password), bcrypt.DefaultCost)
 	if err != nil {
 		log.Error().Err(err).Msg("Failed to hash password")
-		return nil, fiber.NewError(fiber.StatusInternalServerError, fmt.Sprintf("error while hashing password: %w", err))
+		return nil, fiber.NewError(fiber.StatusInternalServerError, fmt.Sprintf("error while hashing password"))
 	}
 
 	newUser := model.NewUser(dto.Username, string(hashedPassword))
@@ -47,13 +47,13 @@ func (s *AuthService) Register(ctx context.Context, dto request.AuthDto) (*respo
 	createdUser, err := s.userService.Create(ctx, newUser)
 	if err != nil {
 		log.Error().Err(err).Msgf("Failed to create user %s", dto.Username)
-		return nil, fiber.NewError(fiber.StatusInternalServerError, fmt.Sprintf("error while creating user: %w", err))
+		return nil, fiber.NewError(fiber.StatusInternalServerError, fmt.Sprintf("error while creating user"))
 	}
 
 	tokenString, err := s.generateToken(createdUser)
 	if err != nil {
 		log.Error().Err(err).Msg("Failed to generate token")
-		return nil, fiber.NewError(fiber.StatusInternalServerError, fmt.Sprintf("error while generating token: %w", err))
+		return nil, fiber.NewError(fiber.StatusInternalServerError, fmt.Sprintf("error while generating token"))
 	}
 
 	log.Info().Msgf("User %s registered successfully", createdUser.Username)
@@ -64,7 +64,7 @@ func (s *AuthService) Login(ctx context.Context, dto request.AuthDto) (*response
 	user, err := s.userService.GetByUsername(ctx, dto.Username)
 	if err != nil {
 		log.Error().Err(err).Msgf("UserService GetByUsername failed: %v", err)
-		return nil, fiber.NewError(fiber.StatusInternalServerError, fmt.Sprintf("error while getting user: %w", err))
+		return nil, fiber.NewError(fiber.StatusInternalServerError, fmt.Sprintf("error while getting user"))
 	}
 	if user == nil {
 		log.Warn().Msgf("User with username %s not found", dto.Username)
@@ -79,7 +79,7 @@ func (s *AuthService) Login(ctx context.Context, dto request.AuthDto) (*response
 	tokenString, err := s.generateToken(user)
 	if err != nil {
 		log.Error().Err(err).Msg("Failed to generate token")
-		return nil, fiber.NewError(fiber.StatusInternalServerError, fmt.Sprintf("error while generating token: %w", err))
+		return nil, fiber.NewError(fiber.StatusInternalServerError, fmt.Sprintf("error while generating token"))
 	}
 
 	log.Info().Msgf("User %s logged in successfully", user.Username)
