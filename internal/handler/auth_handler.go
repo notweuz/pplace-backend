@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"pplace_backend/internal/model"
 	"pplace_backend/internal/service"
 	"strings"
 
@@ -21,15 +22,27 @@ func NewAuthHandler(authService *service.AuthService) *AuthHandler {
 func (h *AuthHandler) Register(c *fiber.Ctx) error {
 	var data request.AuthDto
 	if err := c.BodyParser(&data); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": "Invalid request body",
-		})
+		return c.Status(fiber.StatusBadRequest).JSON(
+			model.NewHttpError(
+				fiber.StatusBadRequest,
+				"Wrong request body provided",
+				[]string{err.Error()},
+			),
+		)
 	}
 
 	if errors := validation.ValidateDTO(&data); errors != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"errors": errors,
-		})
+		stringErrors := make([]string, len(errors))
+		for i, err := range errors {
+			stringErrors[i] = err.Error
+		}
+		return c.Status(fiber.StatusBadRequest).JSON(
+			model.NewHttpError(
+				fiber.StatusBadRequest,
+				"Request body validation failed",
+				stringErrors,
+			),
+		)
 	}
 
 	token, err := h.authService.Register(c.Context(), data)
@@ -43,15 +56,27 @@ func (h *AuthHandler) Register(c *fiber.Ctx) error {
 func (h *AuthHandler) Login(c *fiber.Ctx) error {
 	var data request.AuthDto
 	if err := c.BodyParser(&data); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": "Invalid request body",
-		})
+		return c.Status(fiber.StatusBadRequest).JSON(
+			model.NewHttpError(
+				fiber.StatusBadRequest,
+				"Wrong request body provided",
+				[]string{err.Error()},
+			),
+		)
 	}
 
 	if errors := validation.ValidateDTO(&data); errors != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"errors": errors,
-		})
+		stringErrors := make([]string, len(errors))
+		for i, err := range errors {
+			stringErrors[i] = err.Error
+		}
+		return c.Status(fiber.StatusBadRequest).JSON(
+			model.NewHttpError(
+				fiber.StatusBadRequest,
+				"Request body validation failed",
+				stringErrors,
+			),
+		)
 	}
 
 	token, err := h.authService.Login(c.Context(), data)
@@ -67,20 +92,12 @@ func (h *AuthHandler) handleAuthError(c *fiber.Ctx, err error) error {
 
 	switch {
 	case strings.Contains(errMsg, "already exists"):
-		return c.Status(fiber.StatusConflict).JSON(fiber.Map{
-			"error": errMsg,
-		})
+		return c.Status(fiber.StatusConflict).JSON(model.NewHttpError(fiber.StatusConflict, errMsg, []string{err.Error()}))
 	case strings.Contains(errMsg, "not found"):
-		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
-			"error": errMsg,
-		})
+		return c.Status(fiber.StatusNotFound).JSON(model.NewHttpError(fiber.StatusNotFound, errMsg, []string{err.Error()}))
 	case strings.Contains(errMsg, "invalid password"):
-		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-			"error": errMsg,
-		})
+		return c.Status(fiber.StatusUnauthorized).JSON(model.NewHttpError(fiber.StatusUnauthorized, errMsg, []string{err.Error()}))
 	default:
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": errMsg,
-		})
+		return c.Status(fiber.StatusInternalServerError).JSON(model.NewHttpError(fiber.StatusInternalServerError, errMsg, []string{err.Error()}))
 	}
 }

@@ -5,12 +5,12 @@ import (
 )
 
 type HttpError struct {
-	StatusCode int
-	Message    string
-	Errors     []string
+	StatusCode int      `json:"status_code"`
+	Message    string   `json:"message"`
+	Errors     []string `json:"errors"`
 }
 
-func NewHttpError(statusCode int, message string, errors ...string) *HttpError {
+func NewHttpError(statusCode int, message string, errors []string) *HttpError {
 	err := &HttpError{
 		StatusCode: statusCode,
 		Message:    message,
