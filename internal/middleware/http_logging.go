@@ -20,8 +20,6 @@ func LoggingMiddleware() fiber.Handler {
 
 		if err != nil {
 			log.Error().Err(err).Msgf("HTTP %s %s failed after %v", c.Method(), c.Path(), duration)
-		} else if status >= 400 {
-			log.Info().Msgf("HTTP %s %s completed with status %d in %v", c.Method(), c.Path(), status, duration)
 		} else {
 			log.Info().Msgf("HTTP %s %s completed with status %d in %v", c.Method(), c.Path(), status, duration)
 		}
