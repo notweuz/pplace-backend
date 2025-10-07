@@ -79,6 +79,7 @@ func (s *UserService) UpdateProfile(ctx context.Context, userID uint, username, 
 			return nil, fiber.NewError(fiber.StatusInternalServerError, "Error hashing password")
 		}
 		currentUser.Password = hashedPassword
+		currentUser.TokenVersion++
 	}
 
 	log.Info().Interface("user", currentUser).Msg("Updating user")
@@ -90,11 +91,11 @@ func (s *UserService) ParseAndValidateToken(tokenString string) (*model.User, er
 
 	token, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (any, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-			return nil, fiber.NewError(fiber.StatusInternalServerError, fmt.Sprintf("unexpected signing method: %v", token.Header["alg"]))
+			return nil, fiber.NewError(fiber.StatusBadRequest,
+				fmt.Sprintf("unexpected signing method: %v", token.Header["alg"]))
 		}
 		return []byte(s.config.JWT.Secret), nil
 	})
-
 	if err != nil || !token.Valid {
 		return nil, fiber.NewError(fiber.StatusUnauthorized, "invalid token")
 	}
@@ -102,6 +103,10 @@ func (s *UserService) ParseAndValidateToken(tokenString string) (*model.User, er
 	user, err := s.database.GetById(context.Background(), claims.ID)
 	if err != nil {
 		return nil, fiber.NewError(fiber.StatusNotFound, "User not found")
+	}
+
+	if claims.TokenVersion != user.TokenVersion {
+		return nil, fiber.NewError(fiber.StatusUnauthorized, "token invalidated")
 	}
 
 	return user, nil

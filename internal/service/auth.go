@@ -88,7 +88,8 @@ func (s *AuthService) Login(ctx context.Context, dto request.AuthDto) (*response
 
 func (s *AuthService) generateToken(user *model.User) (string, error) {
 	claims := model.UserClaims{
-		ID: user.ID,
+		ID:           user.ID,
+		TokenVersion: user.TokenVersion,
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Hour * time.Duration(s.config.JWT.Expiration))),
 			IssuedAt:  jwt.NewNumericDate(time.Now()),

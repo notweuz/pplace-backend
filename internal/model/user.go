@@ -15,6 +15,7 @@ type User struct {
 	Admin        bool `gorm:"not null,default:false"`
 	PixelsStock  uint `gorm:"default:1"`
 	AmountPlaced int  `gorm:"default:0"`
+	TokenVersion uint `gorm:"default:0"`
 }
 
 func NewUser(username, password string) *User {
@@ -26,5 +27,6 @@ func NewUser(username, password string) *User {
 		LastPlaced:   time.Now(),
 		PixelsStock:  1,
 		AmountPlaced: 0,
+		TokenVersion: 0,
 	}
 }
