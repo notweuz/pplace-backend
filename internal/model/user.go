@@ -8,21 +8,23 @@ import (
 
 type User struct {
 	gorm.Model
-	Username    string `gorm:"unique"`
-	Password    []byte
-	LastPlaced  time.Time
-	Active      bool `gorm:"default:true"`
-	Admin       bool `gorm:"not null,default:false"`
-	PixelsStock uint `gorm:"default:1"`
+	Username     string `gorm:"unique"`
+	Password     []byte
+	LastPlaced   time.Time
+	Active       bool `gorm:"default:true"`
+	Admin        bool `gorm:"not null,default:false"`
+	PixelsStock  uint `gorm:"default:1"`
+	AmountPlaced int  `gorm:"default:0"`
 }
 
 func NewUser(username, password string) *User {
 	return &User{
-		Username:    username,
-		Password:    []byte(password),
-		Active:      true,
-		Admin:       false,
-		LastPlaced:  time.Now(),
-		PixelsStock: 1,
+		Username:     username,
+		Password:     []byte(password),
+		Active:       true,
+		Admin:        false,
+		LastPlaced:   time.Now(),
+		PixelsStock:  1,
+		AmountPlaced: 0,
 	}
 }

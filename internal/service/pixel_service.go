@@ -42,6 +42,13 @@ func (s *PixelService) Create(c *fiber.Ctx, ctx context.Context, pixel *model.Pi
 	}
 	pixel.UserID = author.ID
 
+	author.AmountPlaced++
+	_, err = s.userService.Update(ctx, author)
+	if err != nil {
+		log.Error().Int("amount placed", author.AmountPlaced).Err(err).Msg("Failed to update user after placing pixel (after updating AmountPlaced)")
+		return nil, err
+	}
+
 	log.Info().Uint("x", pixel.X).Uint("y", pixel.Y).Interface("color", pixel.Color).Msg("Creating pixel")
 	return s.database.Create(ctx, pixel)
 }
@@ -61,6 +68,15 @@ func (s *PixelService) Update(c *fiber.Ctx, ctx context.Context, pixel *model.Pi
 	pixel.UserID = author.ID
 	pixel.X = oldPixel.X
 	pixel.Y = oldPixel.Y
+
+	if oldPixel.UserID != author.ID {
+		author.AmountPlaced++
+		_, err = s.userService.Update(ctx, author)
+		if err != nil {
+			log.Error().Int("amount placed", author.AmountPlaced).Err(err).Msg("Failed to update user after placing pixel (after updating AmountPlaced)")
+			return nil, err
+		}
+	}
 
 	log.Info().Uint("id", pixel.ID).Uint("x", pixel.X).Uint("y", pixel.Y).Interface("color", pixel.Color).Msg("Updating pixel")
 	return s.database.Update(ctx, pixel)

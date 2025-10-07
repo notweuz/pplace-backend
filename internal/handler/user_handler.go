@@ -27,7 +27,7 @@ func (h *UserHandler) GetSelfInfo(c *fiber.Ctx) error {
 		)
 	}
 
-	userDto := response.NewUserDto(user.ID, user.Username, user.LastPlaced)
+	userDto := response.NewUserDto(user.ID, user.Username, user.LastPlaced, user.AmountPlaced)
 	return c.JSON(userDto)
 }
 
@@ -44,7 +44,7 @@ func (h *UserHandler) CreateUser(c *fiber.Ctx) error {
 		return h.handleUserError(c, err)
 	}
 
-	userDto := response.NewUserDto(createdUser.ID, createdUser.Username, createdUser.LastPlaced)
+	userDto := response.NewUserDto(createdUser.ID, createdUser.Username, createdUser.LastPlaced, createdUser.AmountPlaced)
 	return c.Status(fiber.StatusCreated).JSON(userDto)
 }
 
@@ -84,7 +84,7 @@ func (h *UserHandler) UpdateUser(c *fiber.Ctx) error {
 		return h.handleUserError(c, err)
 	}
 
-	userDto := response.NewUserDto(updatedUser.ID, updatedUser.Username, updatedUser.LastPlaced)
+	userDto := response.NewUserDto(updatedUser.ID, updatedUser.Username, updatedUser.LastPlaced, updatedUser.AmountPlaced)
 	return c.JSON(userDto)
 }
 
@@ -103,7 +103,7 @@ func (h *UserHandler) GetUserByID(c *fiber.Ctx) error {
 		)
 	}
 
-	userDto := response.NewUserDto(user.ID, user.Username, user.LastPlaced)
+	userDto := response.NewUserDto(user.ID, user.Username, user.LastPlaced, user.AmountPlaced)
 	return c.JSON(userDto)
 }
 
@@ -122,7 +122,7 @@ func (h *UserHandler) GetUserByUsername(c *fiber.Ctx) error {
 		)
 	}
 
-	userDto := response.NewUserDto(user.ID, user.Username, user.LastPlaced)
+	userDto := response.NewUserDto(user.ID, user.Username, user.LastPlaced, user.AmountPlaced)
 	return c.JSON(userDto)
 }
 
