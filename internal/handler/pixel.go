@@ -21,12 +21,10 @@ func NewPixelHandler(service *service.PixelService) *PixelHandler {
 func (h *PixelHandler) Create(c *fiber.Ctx) error {
 	var pixelCreateDto request.PlacePixelDto
 	if err := c.BodyParser(&pixelCreateDto); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(
-			response.NewHttpError(
-				fiber.StatusBadRequest,
-				"Invalid request body",
-				[]string{err.Error()},
-			),
+		return response.NewHttpError(
+			fiber.StatusBadRequest,
+			"Invalid request body",
+			[]string{err.Error()},
 		)
 	}
 
@@ -36,18 +34,16 @@ func (h *PixelHandler) Create(c *fiber.Ctx) error {
 			stringErrors[i] = err.Error
 		}
 
-		return c.Status(fiber.StatusBadRequest).JSON(
-			response.NewHttpError(
-				fiber.StatusBadRequest,
-				"Request body validation failed",
-				stringErrors,
-			),
+		return response.NewHttpError(
+			fiber.StatusBadRequest,
+			"Request body validation failed",
+			stringErrors,
 		)
 	}
 
 	pixel := model.NewPixel(0, pixelCreateDto.X, pixelCreateDto.Y, pixelCreateDto.Color)
 	createdPixel, err := h.service.Create(c, c.Context(), pixel)
-	if err != nil || createdPixel == nil {
+	if err != nil {
 		return err
 	}
 
@@ -59,16 +55,12 @@ func (h *PixelHandler) Create(c *fiber.Ctx) error {
 func (h *PixelHandler) Update(c *fiber.Ctx) error {
 	id, err := c.ParamsInt("id")
 	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(
-			response.NewHttpError(fiber.StatusBadRequest, "Invalid pixel ID", []string{err.Error()}),
-		)
+		return response.NewHttpError(fiber.StatusBadRequest, "Invalid pixel ID", []string{err.Error()})
 	}
 
 	var pixelUpdateDto request.UpdatePixelDto
 	if err := c.BodyParser(&pixelUpdateDto); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(
-			response.NewHttpError(fiber.StatusBadRequest, "Invalid request body", []string{err.Error()}),
-		)
+		return response.NewHttpError(fiber.StatusBadRequest, "Invalid request body", []string{err.Error()})
 	}
 
 	if validationErrors := validation.ValidateDTO(&pixelUpdateDto); validationErrors != nil {
@@ -77,18 +69,16 @@ func (h *PixelHandler) Update(c *fiber.Ctx) error {
 			stringErrors[i] = err.Error
 		}
 
-		return c.Status(fiber.StatusBadRequest).JSON(
-			response.NewHttpError(
-				fiber.StatusBadRequest,
-				"Request body validation failed",
-				stringErrors,
-			),
+		return response.NewHttpError(
+			fiber.StatusBadRequest,
+			"Request body validation failed",
+			stringErrors,
 		)
 	}
 
 	pixel := model.NewPixel(uint(id), 0, 0, pixelUpdateDto.Color)
 	updatedPixel, err := h.service.Update(c, c.Context(), pixel)
-	if err != nil || updatedPixel == nil {
+	if err != nil {
 		return err
 	}
 
@@ -100,7 +90,7 @@ func (h *PixelHandler) Update(c *fiber.Ctx) error {
 func (h *PixelHandler) GetAll(c *fiber.Ctx) error {
 	pixels, err := h.service.GetAll(c.Context())
 	if err != nil {
-		return err
+		return response.NewHttpError(fiber.StatusInternalServerError, "Failed to fetch pixels", []string{err.Error()})
 	}
 
 	pixelDtos := make([]*response.PixelDto, len(pixels))
@@ -120,19 +110,18 @@ func (h *PixelHandler) GetByCoordinates(c *fiber.Ctx) error {
 	y := c.QueryInt("y", -1)
 
 	if x == -1 || y == -1 {
-		return c.Status(fiber.StatusBadRequest).JSON(
-			response.NewHttpError(
-				fiber.StatusBadRequest,
-				"Both coordinates are missing",
-				[]string{},
-			),
+		return response.NewHttpError(
+			fiber.StatusBadRequest,
+			"Both coordinates are missing",
+			[]string{},
 		)
 	}
 
 	pixel, err := h.service.GetByCoordinates(c.Context(), uint(x), uint(y))
 	if err != nil {
-		return err
+		return response.NewHttpError(fiber.StatusNotFound, "Pixel not found", []string{err.Error()})
 	}
+
 	authorDto := response.NewUserShortDto(pixel.UserID, pixel.User.Username)
 	pixelDto := response.NewPixelDto(pixel.ID, pixel.X, pixel.Y, pixel.Color, *authorDto)
 	return c.Status(fiber.StatusOK).JSON(pixelDto)
@@ -141,9 +130,7 @@ func (h *PixelHandler) GetByCoordinates(c *fiber.Ctx) error {
 func (h *PixelHandler) Delete(c *fiber.Ctx) error {
 	id, err := c.ParamsInt("id")
 	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(
-			response.NewHttpError(fiber.StatusBadRequest, "Invalid pixel ID", []string{err.Error()}),
-		)
+		return response.NewHttpError(fiber.StatusBadRequest, "Invalid pixel ID", []string{err.Error()})
 	}
 
 	err = h.service.Delete(c, c.Context(), uint(id))

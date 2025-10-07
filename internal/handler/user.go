@@ -21,7 +21,7 @@ func NewUserHandler(userService *service.UserService) *UserHandler {
 func (h *UserHandler) GetSelfInfo(c *fiber.Ctx) error {
 	user, err := h.service.GetSelfInfo(c)
 	if err != nil {
-		return response.NewHttpError(fiber.StatusInternalServerError, "Failed to fetch user info", []string{err.Error()})
+		return err
 	}
 
 	userDto := response.NewUserDto(user.ID, user.Username, user.LastPlaced, user.AmountPlaced)
@@ -36,7 +36,7 @@ func (h *UserHandler) CreateUser(c *fiber.Ctx) error {
 
 	createdUser, err := h.service.Create(c.Context(), &user)
 	if err != nil {
-		return err
+		return response.NewHttpError(fiber.StatusInternalServerError, "Failed to create user", []string{err.Error()})
 	}
 
 	userDto := response.NewUserDto(createdUser.ID, createdUser.Username, createdUser.LastPlaced, createdUser.AmountPlaced)
@@ -63,7 +63,7 @@ func (h *UserHandler) UpdateUser(c *fiber.Ctx) error {
 
 	currentUser, err := h.service.GetSelfInfo(c)
 	if err != nil {
-		return response.NewHttpError(fiber.StatusUnauthorized, "Unauthorized", []string{err.Error()})
+		return err
 	}
 
 	updatedUser, err := h.service.UpdateProfile(c.Context(), currentUser.ID, updateData.Username, updateData.Password)
