@@ -57,8 +57,10 @@ func main() {
 	userService := setupUserService(db, &config.PPlace)
 	authService := setupAuthService(db, &config.PPlace, userService)
 
-	transport.SetupUserRoutes(app, userService)
-	transport.SetupAuthRoutes(app, authService)
+	api := app.Group("/api")
+
+	transport.SetupUserRoutes(api, userService)
+	transport.SetupAuthRoutes(api, authService)
 
 	log.Info().Msgf("Starting server on port %d", config.PPlace.Port)
 	log.Fatal().Err(app.Listen(fmt.Sprintf(":%d", config.PPlace.Port)))

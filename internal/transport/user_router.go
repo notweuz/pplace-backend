@@ -9,16 +9,17 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-func SetupUserRoutes(app *fiber.App, service *service.UserService) {
+func SetupUserRoutes(group fiber.Router, service *service.UserService) {
 	userHandler := handler.NewUserHandler(service)
 	authMiddleware := middleware.AuthMiddleware(service)
 
 	log.Info().Msg("Setting up user routes")
 
-	app.Post("/api/users", userHandler.CreateUser)
-	app.Get("/api/users/:id", userHandler.GetUserByID)
-	app.Get("/api/users/username/:username", userHandler.GetUserByUsername)
+	userGroup := group.Group("/users")
+	userGroup.Post("/", userHandler.CreateUser)
+	userGroup.Get("/:id", userHandler.GetUserByID)
+	userGroup.Get("/username/:username", userHandler.GetUserByUsername)
 
-	app.Get("/api/users/me", authMiddleware, userHandler.GetSelfInfo)
-	app.Put("/api/users/me", authMiddleware, userHandler.UpdateUser)
+	userGroup.Get("/me", authMiddleware, userHandler.GetSelfInfo)
+	userGroup.Put("/me", authMiddleware, userHandler.UpdateUser)
 }
