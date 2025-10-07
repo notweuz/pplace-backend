@@ -22,9 +22,9 @@ func NewUserHandler(userService *service.UserService) *UserHandler {
 func (h *UserHandler) GetSelfInfo(c *fiber.Ctx) error {
 	user, err := h.service.GetSelfInfo(c)
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": err.Error(),
-		})
+		return c.Status(fiber.StatusInternalServerError).JSON(
+			model.NewHttpError(fiber.StatusInternalServerError, "Failed to fetch user info", []string{err.Error()}),
+		)
 	}
 
 	userDto := response.NewUserDto(user.ID, user.Username, user.LastPlaced)
@@ -34,16 +34,14 @@ func (h *UserHandler) GetSelfInfo(c *fiber.Ctx) error {
 func (h *UserHandler) CreateUser(c *fiber.Ctx) error {
 	var user model.User
 	if err := c.BodyParser(&user); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": "Invalid request body",
-		})
+		return c.Status(fiber.StatusBadRequest).JSON(
+			model.NewHttpError(fiber.StatusBadRequest, "Invalid request body", []string{err.Error()}),
+		)
 	}
 
 	createdUser, err := h.service.Create(c.Context(), &user)
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": err.Error(),
-		})
+		return h.handleUserError(c, err)
 	}
 
 	userDto := response.NewUserDto(createdUser.ID, createdUser.Username, createdUser.LastPlaced)
@@ -53,33 +51,37 @@ func (h *UserHandler) CreateUser(c *fiber.Ctx) error {
 func (h *UserHandler) UpdateUser(c *fiber.Ctx) error {
 	var updateData request.UpdateUserDto
 	if err := c.BodyParser(&updateData); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": "Invalid request body",
-		})
+		return c.Status(fiber.StatusBadRequest).JSON(
+			model.NewHttpError(fiber.StatusBadRequest, "Invalid request body", []string{err.Error()}),
+		)
 	}
 
 	if errors := validation.ValidateDTO(&updateData); errors != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"errors": errors,
-		})
+		stringErrors := make([]string, len(errors))
+		for i, err := range errors {
+			stringErrors[i] = err.Error
+		}
+		return c.Status(fiber.StatusBadRequest).JSON(
+			model.NewHttpError(fiber.StatusBadRequest, "Validation failed", stringErrors),
+		)
 	}
 
 	if updateData.Username == "" && updateData.Password == "" {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": "At least one field (username or password) must be provided",
-		})
+		return c.Status(fiber.StatusBadRequest).JSON(
+			model.NewHttpError(fiber.StatusBadRequest, "At least one field (username or password) must be provided", nil),
+		)
 	}
 
 	currentUser, err := h.service.GetSelfInfo(c)
 	if err != nil {
-		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
-			"error": "Unauthorized",
-		})
+		return c.Status(fiber.StatusUnauthorized).JSON(
+			model.NewHttpError(fiber.StatusUnauthorized, "Unauthorized", []string{err.Error()}),
+		)
 	}
 
 	updatedUser, err := h.service.UpdateProfile(c.Context(), currentUser.ID, updateData.Username, updateData.Password)
 	if err != nil {
-		return h.handleUpdateError(c, err)
+		return h.handleUserError(c, err)
 	}
 
 	userDto := response.NewUserDto(updatedUser.ID, updatedUser.Username, updatedUser.LastPlaced)
@@ -89,16 +91,16 @@ func (h *UserHandler) UpdateUser(c *fiber.Ctx) error {
 func (h *UserHandler) GetUserByID(c *fiber.Ctx) error {
 	id, err := c.ParamsInt("id")
 	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": "Invalid user ID",
-		})
+		return c.Status(fiber.StatusBadRequest).JSON(
+			model.NewHttpError(fiber.StatusBadRequest, "Invalid user ID", []string{err.Error()}),
+		)
 	}
 
 	user, err := h.service.GetByID(c.Context(), uint(id))
 	if err != nil {
-		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
-			"error": "User not found",
-		})
+		return c.Status(fiber.StatusNotFound).JSON(
+			model.NewHttpError(fiber.StatusNotFound, "User not found", []string{err.Error()}),
+		)
 	}
 
 	userDto := response.NewUserDto(user.ID, user.Username, user.LastPlaced)
@@ -108,36 +110,30 @@ func (h *UserHandler) GetUserByID(c *fiber.Ctx) error {
 func (h *UserHandler) GetUserByUsername(c *fiber.Ctx) error {
 	username := c.Params("username")
 	if username == "" {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": "Username is required",
-		})
+		return c.Status(fiber.StatusBadRequest).JSON(
+			model.NewHttpError(fiber.StatusBadRequest, "Username is required", nil),
+		)
 	}
 
 	user, err := h.service.GetByUsername(c.Context(), username)
 	if err != nil {
-		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
-			"error": "User not found",
-		})
+		return c.Status(fiber.StatusNotFound).JSON(
+			model.NewHttpError(fiber.StatusNotFound, "User not found", []string{err.Error()}),
+		)
 	}
 
 	userDto := response.NewUserDto(user.ID, user.Username, user.LastPlaced)
 	return c.JSON(userDto)
 }
 
-func (h *UserHandler) handleUpdateError(c *fiber.Ctx, err error) error {
+func (h *UserHandler) handleUserError(c *fiber.Ctx, err error) error {
 	errMsg := err.Error()
 	switch {
 	case strings.Contains(errMsg, "already taken"):
-		return c.Status(fiber.StatusConflict).JSON(fiber.Map{
-			"error": errMsg,
-		})
+		return c.Status(fiber.StatusConflict).JSON(model.NewHttpError(fiber.StatusConflict, errMsg, []string{errMsg}))
 	case strings.Contains(errMsg, "not found"):
-		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
-			"error": errMsg,
-		})
+		return c.Status(fiber.StatusNotFound).JSON(model.NewHttpError(fiber.StatusNotFound, errMsg, []string{errMsg}))
 	default:
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
-			"error": errMsg,
-		})
+		return c.Status(fiber.StatusInternalServerError).JSON(model.NewHttpError(fiber.StatusInternalServerError, errMsg, []string{errMsg}))
 	}
 }
