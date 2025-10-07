@@ -18,11 +18,7 @@ func NewInfoService(config *config.PPlaceConfig) *InfoService {
 func (s *InfoService) GetPixelSheetInfo() response.SheetInfoDto {
 	log.Info().Interface("version", s.config.Version).Interface("sheet", s.config.Sheet).Msg("Fetching service info")
 	return response.SheetInfoDto{
-		Size: map[string]int{
-			"width":          int(s.config.Sheet.Width),
-			"height":         int(s.config.Sheet.Height),
-			"place_cooldown": int(s.config.Sheet.PlaceCooldown),
-		},
+		Size:    s.config.Sheet,
 		Version: s.config.Version,
 	}
 }
