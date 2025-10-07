@@ -38,6 +38,7 @@ func (h *PixelHandler) Create(c *fiber.Ctx) error {
 		for i, err := range validationErrors {
 			stringErrors[i] = err.Error
 		}
+
 		return c.Status(fiber.StatusBadRequest).JSON(
 			model.NewHttpError(
 				fiber.StatusBadRequest,
@@ -78,6 +79,7 @@ func (h *PixelHandler) Update(c *fiber.Ctx) error {
 		for i, err := range validationErrors {
 			stringErrors[i] = err.Error
 		}
+
 		return c.Status(fiber.StatusBadRequest).JSON(
 			model.NewHttpError(
 				fiber.StatusBadRequest,
@@ -108,7 +110,7 @@ func (h *PixelHandler) GetAll(c *fiber.Ctx) error {
 	for i, pixel := range pixels {
 		authorDto := response.NewUserShortDto(pixel.UserID, pixel.User.Username)
 		pixelDtos[i] = response.NewPixelDto(
-			pixel.UserID, pixel.X, pixel.Y, pixel.Color, *authorDto,
+			pixel.ID, pixel.X, pixel.Y, pixel.Color, *authorDto,
 		)
 	}
 
@@ -141,7 +143,6 @@ func (h *PixelHandler) Delete(c *fiber.Ctx) error {
 
 func (h *PixelHandler) handlePixelError(c *fiber.Ctx, err error) error {
 	errMsg := err.Error()
-
 	switch {
 	case strings.Contains(errMsg, "not found"):
 		return c.Status(fiber.StatusNotFound).JSON(model.NewHttpError(fiber.StatusNotFound, errMsg, []string{errMsg}))
