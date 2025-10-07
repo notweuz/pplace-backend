@@ -47,7 +47,7 @@ func (h *PixelHandler) Create(c *fiber.Ctx) error {
 
 	pixel := model.NewPixel(0, pixelCreateDto.X, pixelCreateDto.Y, pixelCreateDto.Color)
 	createdPixel, err := h.service.Create(c, c.Context(), pixel)
-	if err != nil {
+	if err != nil || createdPixel == nil {
 		return err
 	}
 
@@ -88,7 +88,7 @@ func (h *PixelHandler) Update(c *fiber.Ctx) error {
 
 	pixel := model.NewPixel(uint(id), 0, 0, pixelUpdateDto.Color)
 	updatedPixel, err := h.service.Update(c, c.Context(), pixel)
-	if err != nil {
+	if err != nil || updatedPixel == nil {
 		return err
 	}
 

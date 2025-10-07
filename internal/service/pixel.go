@@ -46,7 +46,7 @@ func (s *PixelService) Create(c *fiber.Ctx, ctx context.Context, pixel *model.Pi
 		return nil, err
 	}
 
-	isReady, err := s.checkPlaceCooldown(author, ctx)
+	isReady, err := s.checkPlaceCooldown(author)
 	if err != nil {
 		return nil, err
 	}
@@ -78,7 +78,7 @@ func (s *PixelService) Update(c *fiber.Ctx, ctx context.Context, pixel *model.Pi
 		return nil, err
 	}
 
-	isReady, err := s.checkPlaceCooldown(author, ctx)
+	isReady, err := s.checkPlaceCooldown(author)
 	if err != nil {
 		return nil, err
 	}
@@ -157,7 +157,7 @@ func (s *PixelService) Delete(c *fiber.Ctx, ctx context.Context, id uint) error 
 	return nil
 }
 
-func (s *PixelService) checkPlaceCooldown(user *model.User, ctx context.Context) (bool, error) {
+func (s *PixelService) checkPlaceCooldown(user *model.User) (bool, error) {
 	if user.LastPlaced.IsZero() {
 		return true, nil
 	}

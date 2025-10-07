@@ -1,6 +1,7 @@
 package validation
 
 import (
+	"errors"
 	"regexp"
 
 	"github.com/go-playground/validator/v10"
@@ -41,18 +42,19 @@ func ValidateDTO(dto interface{}) []Error {
 
 	err = validate.Struct(dto)
 	if err != nil {
-		if _, ok := err.(*validator.InvalidValidationError); ok {
+		var invalidValidationError *validator.InvalidValidationError
+		if errors.As(err, &invalidValidationError) {
 			return nil
 		}
-		var errors []Error
+		var errs []Error
 		for _, e := range err.(validator.ValidationErrors) {
-			errors = append(errors, Error{
+			errs = append(errs, Error{
 				Error: e.Error(),
 				Field: e.Field(),
 				Value: e.Value(),
 			})
 		}
-		return errors
+		return errs
 	}
 	return nil
 }
