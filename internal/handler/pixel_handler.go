@@ -98,6 +98,24 @@ func (h *PixelHandler) Update(c *fiber.Ctx) error {
 	return c.Status(fiber.StatusOK).JSON(pixelDto)
 }
 
+func (h *PixelHandler) GetAll(c *fiber.Ctx) error {
+	pixels, err := h.service.GetAll(c.Context())
+	if err != nil {
+		return h.handlePixelError(c, err)
+	}
+
+	pixelDtos := make([]*response.PixelDto, len(pixels))
+	for i, pixel := range pixels {
+		authorDto := response.NewUserShortDto(pixel.UserID, pixel.User.Username)
+		pixelDtos[i] = response.NewPixelDto(
+			pixel.UserID, pixel.X, pixel.Y, pixel.Color, *authorDto,
+		)
+	}
+
+	pixelsDto := response.PixelListDto{Pixels: pixelDtos}
+	return c.Status(fiber.StatusOK).JSON(pixelsDto)
+}
+
 func (h *PixelHandler) Delete(c *fiber.Ctx) error {
 	id, err := c.ParamsInt("id")
 	if err != nil {
