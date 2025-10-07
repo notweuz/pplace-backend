@@ -16,10 +16,11 @@ func SetupUserRoutes(group fiber.Router, service *service.UserService) {
 	log.Info().Msg("Setting up user routes")
 
 	userGroup := group.Group("/users")
-	userGroup.Post("/", userHandler.CreateUser)
-	userGroup.Get("/:id", userHandler.GetUserByID)
-	userGroup.Get("/username/:username", userHandler.GetUserByUsername)
 
 	userGroup.Get("/me", authMiddleware, userHandler.GetSelfInfo)
 	userGroup.Put("/me", authMiddleware, userHandler.UpdateUser)
+
+	userGroup.Post("/", userHandler.CreateUser)
+	userGroup.Get("/username/:username", userHandler.GetUserByUsername)
+	userGroup.Get("/:id", userHandler.GetUserByID)
 }
