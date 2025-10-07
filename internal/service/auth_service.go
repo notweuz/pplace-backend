@@ -11,6 +11,7 @@ import (
 	"pplace_backend/internal/model/dto/response"
 
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/rs/zerolog/log"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -26,14 +27,17 @@ func NewAuthService(userService *UserService, config *config.PPlaceConfig) *Auth
 func (s *AuthService) Register(ctx context.Context, dto request.AuthDto) (*response.AuthTokenDto, error) {
 	user, err := s.userService.GetByUsername(ctx, dto.Username)
 	if err != nil {
+		log.Error().Err(err).Msgf("UserService GetByUsername failed: %v", err)
 		return nil, fmt.Errorf("error while getting user by username: %w", err)
 	}
 	if user != nil {
+		log.Warn().Msgf("User %s already exists", user.Username)
 		return nil, fmt.Errorf("user with this username already exists")
 	}
 
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(dto.Password), bcrypt.DefaultCost)
 	if err != nil {
+		log.Error().Err(err).Msg("Failed to hash password")
 		return nil, fmt.Errorf("error while hashing password: %w", err)
 	}
 
@@ -41,35 +45,43 @@ func (s *AuthService) Register(ctx context.Context, dto request.AuthDto) (*respo
 
 	createdUser, err := s.userService.Create(ctx, newUser)
 	if err != nil {
+		log.Error().Err(err).Msgf("Failed to create user %s", dto.Username)
 		return nil, fmt.Errorf("error while creating user: %w", err)
 	}
 
 	tokenString, err := s.generateToken(createdUser)
 	if err != nil {
+		log.Error().Err(err).Msg("Failed to generate token")
 		return nil, fmt.Errorf("error while generating token: %w", err)
 	}
 
+	log.Info().Msgf("User %s registered successfully", createdUser.Username)
 	return response.NewAuthTokenDto(tokenString), nil
 }
 
 func (s *AuthService) Login(ctx context.Context, dto request.AuthDto) (*response.AuthTokenDto, error) {
 	user, err := s.userService.GetByUsername(ctx, dto.Username)
 	if err != nil {
+		log.Error().Err(err).Msgf("UserService GetByUsername failed: %v", err)
 		return nil, fmt.Errorf("error while getting user: %w", err)
 	}
 	if user == nil {
+		log.Warn().Msgf("User with username %s not found", dto.Username)
 		return nil, fmt.Errorf("user with that username not found")
 	}
 
 	if err := bcrypt.CompareHashAndPassword(user.Password, []byte(dto.Password)); err != nil {
+		log.Warn().Msgf("Invalid password for user %s", dto.Username)
 		return nil, fmt.Errorf("invalid password")
 	}
 
 	tokenString, err := s.generateToken(user)
 	if err != nil {
+		log.Error().Err(err).Msg("Failed to generate token")
 		return nil, fmt.Errorf("error while generating token: %w", err)
 	}
 
+	log.Info().Msgf("User %s logged in successfully", user.Username)
 	return response.NewAuthTokenDto(tokenString), nil
 }
 
@@ -82,8 +94,10 @@ func (s *AuthService) generateToken(user *model.User) (string, error) {
 
 	tokenString, err := token.SignedString([]byte(s.config.JWT.Secret))
 	if err != nil {
+		log.Error().Err(err).Msg("Failed to sign token")
 		return "", err
 	}
 
+	log.Info().Msg("Token generated successfully")
 	return tokenString, nil
 }
