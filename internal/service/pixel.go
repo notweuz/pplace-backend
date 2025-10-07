@@ -40,7 +40,8 @@ func (s *PixelService) Create(c *fiber.Ctx, ctx context.Context, pixel *model.Pi
 
 	if (pixel.X > s.config.Sheet.Width) || (pixel.X < 1) || (pixel.Y > s.config.Sheet.Height) || (pixel.Y < 1) {
 		log.Error().Uint("x", pixel.X).Uint("y", pixel.Y).Interface("current size", s.config.Sheet).Msg("Pixel coordinates out of range")
-		return nil, fiber.NewError(fiber.StatusBadRequest, fmt.Sprintf("pixel coordinates out of range: %d, %d", pixel.X, pixel.Y))
+		return nil, fiber.NewError(fiber.StatusBadRequest,
+			fmt.Sprintf("pixel coordinates out of range: %d, %d / %d, %d", pixel.X, pixel.Y, s.config.Sheet.Width, s.config.Sheet.Height))
 	}
 
 	author, err := s.userService.GetSelfInfo(c)
@@ -134,6 +135,11 @@ func (s *PixelService) GetAll(ctx context.Context) ([]model.Pixel, error) {
 
 func (s *PixelService) GetByCoordinates(ctx context.Context, x, y uint) (*model.Pixel, error) {
 	log.Info().Uint("x", x).Uint("y", y).Msg("Getting pixel by coordinates")
+	if (x > s.config.Sheet.Width) || (x < 1) || (y > s.config.Sheet.Height) || (y < 1) {
+		log.Error().Uint("x", x).Uint("y", y).Interface("current size", s.config.Sheet).Msg("Pixel coordinates out of range")
+		return nil, fiber.NewError(fiber.StatusBadRequest,
+			fmt.Sprintf("pixel coordinates out of range: %d, %d / %d, %d", x, y, s.config.Sheet.Width, s.config.Sheet.Height))
+	}
 	return s.database.GetByCoordinates(ctx, x, y)
 }
 
