@@ -1,6 +1,6 @@
 pplace:
   port: 8080
-  version: "0.1-dev"
+  version: "1.0-dev"
   sheet:
     width: 500
     height: 500
