@@ -54,7 +54,9 @@ func main() {
 	}
 
 	log.Info().Msg("Migrated database successfully")
-	app := fiber.New()
+	app := fiber.New(fiber.Config{
+		ErrorHandler: middleware.CustomErrorHandler(),
+	})
 	app.Use(middleware.LoggingMiddleware())
 	log.Info().Msg("Initializing fiber application")
 
