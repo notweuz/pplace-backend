@@ -2,7 +2,6 @@ package database
 
 import (
 	"context"
-	"errors"
 	"pplace_backend/internal/model"
 
 	"gorm.io/gorm"
@@ -35,9 +34,6 @@ func (d *PixelDatabase) Update(ctx context.Context, pixel *model.Pixel) (*model.
 func (d *PixelDatabase) GetByID(ctx context.Context, id uint) (*model.Pixel, error) {
 	var pixel model.Pixel
 	result := d.db.WithContext(ctx).First(&pixel, id)
-	if errors.Is(result.Error, gorm.ErrRecordNotFound) {
-		return nil, nil
-	}
 	return &pixel, result.Error
 }
 

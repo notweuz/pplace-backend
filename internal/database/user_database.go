@@ -2,7 +2,6 @@ package database
 
 import (
 	"context"
-	"errors"
 	"pplace_backend/internal/model"
 
 	"gorm.io/gorm"
@@ -35,9 +34,6 @@ func (d *UserDatabase) Update(ctx context.Context, user *model.User) (*model.Use
 func (d *UserDatabase) GetById(ctx context.Context, id uint) (*model.User, error) {
 	var user model.User
 	result := d.db.WithContext(ctx).First(&user, id)
-	if errors.Is(result.Error, gorm.ErrRecordNotFound) {
-		return nil, nil
-	}
 	return &user, result.Error
 }
 

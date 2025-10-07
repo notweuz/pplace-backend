@@ -46,7 +46,16 @@ func (s *PixelService) Update(c *fiber.Ctx, ctx context.Context, pixel *model.Pi
 		log.Error().Err(err).Msg("")
 		return nil, err
 	}
+
+	oldPixel, err := s.GetByID(ctx, pixel.ID)
+	if err != nil {
+		log.Error().Err(err).Msg("")
+		return nil, err
+	}
+
 	pixel.UserID = author.ID
+	pixel.X = oldPixel.X
+	pixel.Y = oldPixel.Y
 	return s.database.Update(ctx, pixel)
 }
 

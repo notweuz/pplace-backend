@@ -25,7 +25,7 @@ func (h *PixelHandler) Create(c *fiber.Ctx) error {
 		})
 	}
 
-	pixel := model.NewPixel(pixelCreateDto.X, pixelCreateDto.Y, pixelCreateDto.Color)
+	pixel := model.NewPixel(0, pixelCreateDto.X, pixelCreateDto.Y, pixelCreateDto.Color)
 	createdPixel, err := h.service.Create(c, c.Context(), pixel)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
@@ -39,14 +39,21 @@ func (h *PixelHandler) Create(c *fiber.Ctx) error {
 }
 
 func (h *PixelHandler) Update(c *fiber.Ctx) error {
-	var pixelUpdateDto request.PlacePixelDto
+	id, err := c.ParamsInt("id")
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "Invalid pixel ID",
+		})
+	}
+
+	var pixelUpdateDto request.UpdatePixelDto
 	if err := c.BodyParser(&pixelUpdateDto); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"error": "Invalid request body",
 		})
 	}
 
-	pixel := model.NewPixel(pixelUpdateDto.X, pixelUpdateDto.Y, pixelUpdateDto.Color)
+	pixel := model.NewPixel(uint(id), 0, 0, pixelUpdateDto.Color)
 	updatedPixel, err := h.service.Update(c, c.Context(), pixel)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{

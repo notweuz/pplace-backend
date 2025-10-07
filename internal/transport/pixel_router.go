@@ -17,5 +17,5 @@ func SetupPixelRoutes(group fiber.Router, service *service.PixelService, userSer
 	pixelsGroup := group.Group("/pixels")
 
 	pixelsGroup.Post("/", authMiddleware, pixelHandler.Create)
-	pixelsGroup.Put("/:id", authMiddleware, pixelHandler.Update)
+	pixelsGroup.Patch("/:id", authMiddleware, pixelHandler.Update)
 }

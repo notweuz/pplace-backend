@@ -9,8 +9,9 @@ type Pixel struct {
 	User   User `gorm:"foreignKey:UserID"`
 }
 
-func NewPixel(x, y uint, color string) *Pixel {
+func NewPixel(id, x, y uint, color string) *Pixel {
 	return &Pixel{
+		ID:    id,
 		X:     x,
 		Y:     y,
 		Color: color,
