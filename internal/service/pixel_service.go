@@ -5,6 +5,7 @@ import (
 	"pplace_backend/internal/config"
 	"pplace_backend/internal/database"
 	"pplace_backend/internal/model"
+	"time"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/rs/zerolog/log"
@@ -40,12 +41,22 @@ func (s *PixelService) Create(c *fiber.Ctx, ctx context.Context, pixel *model.Pi
 	if err != nil {
 		return nil, err
 	}
-	pixel.UserID = author.ID
 
+	isReady, err := s.checkPlaceCooldown(author, ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	if !isReady {
+		return nil, fiber.NewError(fiber.StatusForbidden, "Cannot create pixel, user is on cooldown")
+	}
+
+	pixel.UserID = author.ID
 	author.AmountPlaced++
+	author.LastPlaced = time.Now()
 	_, err = s.userService.Update(ctx, author)
 	if err != nil {
-		log.Error().Int("amount placed", author.AmountPlaced).Err(err).Msg("Failed to update user after placing pixel (after updating AmountPlaced)")
+		log.Error().Int("amount placed", author.AmountPlaced).Time("last placed", author.LastPlaced).Err(err).Msg("Failed to update user after placing pixel")
 		return nil, err
 	}
 
@@ -59,6 +70,15 @@ func (s *PixelService) Update(c *fiber.Ctx, ctx context.Context, pixel *model.Pi
 		return nil, err
 	}
 
+	isReady, err := s.checkPlaceCooldown(author, ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	if !isReady {
+		return nil, fiber.NewError(fiber.StatusForbidden, "Cannot create pixel, user is on cooldown")
+	}
+
 	oldPixel, err := s.GetByID(ctx, pixel.ID)
 	if err != nil {
 		log.Error().Err(err).Msg("Failed to get pixel by ID")
@@ -69,13 +89,12 @@ func (s *PixelService) Update(c *fiber.Ctx, ctx context.Context, pixel *model.Pi
 	pixel.X = oldPixel.X
 	pixel.Y = oldPixel.Y
 
-	if oldPixel.UserID != author.ID {
-		author.AmountPlaced++
-		_, err = s.userService.Update(ctx, author)
-		if err != nil {
-			log.Error().Int("amount placed", author.AmountPlaced).Err(err).Msg("Failed to update user after placing pixel (after updating AmountPlaced)")
-			return nil, err
-		}
+	author.AmountPlaced++
+	author.LastPlaced = time.Now()
+	_, err = s.userService.Update(ctx, author)
+	if err != nil {
+		log.Error().Int("amount placed", author.AmountPlaced).Time("last placed", author.LastPlaced).Err(err).Msg("Failed to update user after placing pixel")
+		return nil, err
 	}
 
 	log.Info().Uint("id", pixel.ID).Uint("x", pixel.X).Uint("y", pixel.Y).Interface("color", pixel.Color).Msg("Updating pixel")
@@ -123,4 +142,24 @@ func (s *PixelService) Delete(c *fiber.Ctx, ctx context.Context, id uint) error 
 	}
 	log.Info().Uint("id", id).Msg("Deleted pixel")
 	return nil
+}
+
+func (s *PixelService) checkPlaceCooldown(user *model.User, ctx context.Context) (bool, error) {
+	if user.LastPlaced.IsZero() {
+		return true, nil
+	}
+
+	now := time.Now()
+	elapsed := now.Sub(user.LastPlaced)
+	cooldown := time.Duration(s.config.Sheet.PlaceCooldown) * time.Millisecond
+	canPlace := elapsed >= cooldown
+
+	log.Info().
+		Uint("userId", user.ID).
+		Dur("elapsed", elapsed).
+		Dur("cooldown", cooldown).
+		Bool("canPlace", canPlace).
+		Msg("Cooldown check")
+
+	return canPlace, nil
 }

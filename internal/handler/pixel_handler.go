@@ -171,6 +171,8 @@ func (h *PixelHandler) handlePixelError(c *fiber.Ctx, err error) error {
 		return c.Status(fiber.StatusNotFound).JSON(model.NewHttpError(fiber.StatusNotFound, errMsg, []string{errMsg}))
 	case strings.Contains(errMsg, "already exists"):
 		return c.Status(fiber.StatusConflict).JSON(model.NewHttpError(fiber.StatusConflict, errMsg, []string{errMsg}))
+	case strings.Contains(errMsg, "cooldown"):
+		return c.Status(fiber.StatusForbidden).JSON(model.NewHttpError(fiber.StatusForbidden, errMsg, []string{errMsg}))
 	default:
 		return c.Status(fiber.StatusInternalServerError).JSON(model.NewHttpError(fiber.StatusInternalServerError, "Failed to process pixel", []string{errMsg}))
 	}

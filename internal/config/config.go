@@ -22,8 +22,9 @@ type PPlaceConfig struct {
 }
 
 type SheetConfig struct {
-	Width  uint `yaml:"width"`
-	Height uint `yaml:"height"`
+	Width         uint  `yaml:"width"`
+	Height        uint  `yaml:"height"`
+	PlaceCooldown int64 `yaml:"place_cooldown"`
 }
 
 type Config struct {

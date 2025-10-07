@@ -4,6 +4,7 @@ pplace:
   sheet:
     width: 500
     height: 500
+    place_cooldown: 5000
   database:
     host: "https://example.com/"
     port: 5432
