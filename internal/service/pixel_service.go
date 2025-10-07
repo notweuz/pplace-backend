@@ -7,6 +7,7 @@ import (
 	"pplace_backend/internal/model"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/rs/zerolog/log"
 )
 
 type PixelService struct {
@@ -26,13 +27,20 @@ func NewPixelService(db *database.PixelDatabase, config *config.PPlaceConfig, us
 func (s *PixelService) Create(c *fiber.Ctx, ctx context.Context, pixel *model.Pixel) (*model.Pixel, error) {
 	author, err := s.userService.GetSelfInfo(c)
 	if err != nil {
+		log.Error().Err(err).Msg("")
 		return nil, err
 	}
 	pixel.UserID = author.ID
 	return s.database.Create(ctx, pixel)
 }
 
-func (s *PixelService) Update(ctx context.Context, pixel *model.Pixel) (*model.Pixel, error) {
+func (s *PixelService) Update(c *fiber.Ctx, ctx context.Context, pixel *model.Pixel) (*model.Pixel, error) {
+	author, err := s.userService.GetSelfInfo(c)
+	if err != nil {
+		log.Error().Err(err).Msg("")
+		return nil, err
+	}
+	pixel.UserID = author.ID
 	return s.database.Update(ctx, pixel)
 }
 

@@ -37,3 +37,23 @@ func (h *PixelHandler) Create(c *fiber.Ctx) error {
 	pixelDto := response.NewPixelDto(createdPixel.ID, createdPixel.X, createdPixel.Y, createdPixel.Color, *authorDto)
 	return c.Status(fiber.StatusCreated).JSON(pixelDto)
 }
+
+func (h *PixelHandler) Update(c *fiber.Ctx) error {
+	var pixelUpdateDto request.PlacePixelDto
+	if err := c.BodyParser(&pixelUpdateDto); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "Invalid request body",
+		})
+	}
+
+	pixel := model.NewPixel(pixelUpdateDto.X, pixelUpdateDto.Y, pixelUpdateDto.Color)
+	updatedPixel, err := h.service.Update(c, c.Context(), pixel)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": "Failed to update pixel",
+		})
+	}
+	authorDto := response.NewUserShortDto(updatedPixel.UserID, updatedPixel.User.Username)
+	pixelDto := response.NewPixelDto(updatedPixel.ID, updatedPixel.X, updatedPixel.Y, updatedPixel.Color, *authorDto)
+	return c.Status(fiber.StatusOK).JSON(pixelDto)
+}
