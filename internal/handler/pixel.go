@@ -93,15 +93,15 @@ func (h *PixelHandler) GetAll(c *fiber.Ctx) error {
 		return response.NewHttpError(fiber.StatusInternalServerError, "Failed to fetch pixels", []string{err.Error()})
 	}
 
-	pixelDtos := make([]*response.PixelDto, len(pixels))
+	pixelDTOs := make([]*response.PixelDto, len(pixels))
 	for i, pixel := range pixels {
 		authorDto := response.NewUserShortDto(pixel.UserID, pixel.User.Username)
-		pixelDtos[i] = response.NewPixelDto(
+		pixelDTOs[i] = response.NewPixelDto(
 			pixel.ID, pixel.X, pixel.Y, pixel.Color, *authorDto,
 		)
 	}
 
-	pixelsDto := response.PixelListDto{Pixels: pixelDtos}
+	pixelsDto := response.PixelListDto{Pixels: pixelDTOs}
 	return c.Status(fiber.StatusOK).JSON(pixelsDto)
 }
 
