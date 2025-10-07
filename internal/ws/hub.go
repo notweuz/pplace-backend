@@ -2,6 +2,7 @@ package ws
 
 import (
 	"encoding/json"
+	"pplace_backend/internal/model/dto/ws"
 	"time"
 
 	"pplace_backend/internal/model"
@@ -10,17 +11,6 @@ import (
 	"github.com/gofiber/websocket/v2"
 	"github.com/rs/zerolog/log"
 )
-
-type PixelEvent struct {
-	Action   string    `json:"action"`
-	ID       uint      `json:"id"`
-	X        uint      `json:"x"`
-	Y        uint      `json:"y"`
-	Color    string    `json:"color"`
-	UserID   uint      `json:"userId"`
-	Username string    `json:"username"`
-	Time     time.Time `json:"time"`
-}
 
 type Client struct {
 	conn *websocket.Conn
@@ -124,16 +114,7 @@ func BroadcastPixel(action string, pixel *model.Pixel) {
 	if DefaultHub == nil {
 		return
 	}
-	ev := PixelEvent{
-		Action:   action,
-		ID:       pixel.ID,
-		X:        pixel.X,
-		Y:        pixel.Y,
-		Color:    pixel.Color,
-		UserID:   pixel.UserID,
-		Username: pixel.User.Username,
-		Time:     time.Now(),
-	}
+	ev := ws.NewPixelEventDto(action, pixel.Color, pixel.User.Username, pixel.ID, pixel.X, pixel.Y, pixel.UserID, time.Now())
 	data, err := json.Marshal(ev)
 	if err != nil {
 		log.Error().Err(err).Msg("Failed to marshal event")
@@ -150,19 +131,7 @@ func BroadcastPixelDelete(id, x, y uint) {
 	if DefaultHub == nil {
 		return
 	}
-	ev := struct {
-		Action string    `json:"action"`
-		ID     uint      `json:"id"`
-		X      uint      `json:"x"`
-		Y      uint      `json:"y"`
-		Time   time.Time `json:"time"`
-	}{
-		Action: "delete",
-		ID:     id,
-		X:      x,
-		Y:      y,
-		Time:   time.Now(),
-	}
+	ev := ws.NewPixelDeleteEventDto("delete", id, x, y, time.Now())
 	data, err := json.Marshal(ev)
 	if err != nil {
 		log.Error().Err(err).Msg("Failed to marshal delete event")
