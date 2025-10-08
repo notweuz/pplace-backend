@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"pplace_backend/internal/model"
 	"pplace_backend/internal/model/dto/request"
 	"pplace_backend/internal/model/dto/response"
 	"pplace_backend/internal/service"
@@ -26,21 +25,6 @@ func (h *UserHandler) GetSelfInfo(c *fiber.Ctx) error {
 
 	userDto := response.NewUserDto(user.ID, user.Username, user.LastPlaced, user.AmountPlaced, user.Admin)
 	return c.JSON(userDto)
-}
-
-func (h *UserHandler) CreateUser(c *fiber.Ctx) error {
-	var user model.User
-	if err := c.BodyParser(&user); err != nil {
-		return response.NewHttpError(fiber.StatusBadRequest, "Invalid request body", []string{err.Error()})
-	}
-
-	createdUser, err := h.service.Create(c.Context(), &user)
-	if err != nil {
-		return response.NewHttpError(fiber.StatusInternalServerError, "Failed to create user", []string{err.Error()})
-	}
-
-	userDto := response.NewUserDto(createdUser.ID, createdUser.Username, createdUser.LastPlaced, createdUser.AmountPlaced, user.Admin)
-	return c.Status(fiber.StatusCreated).JSON(userDto)
 }
 
 func (h *UserHandler) UpdateUser(c *fiber.Ctx) error {

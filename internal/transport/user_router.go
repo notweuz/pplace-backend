@@ -19,7 +19,6 @@ func SetupUserRoutes(group fiber.Router, service *service.UserService) {
 	userGroup.Get("/me", authMiddleware, userHandler.GetSelfInfo)
 	userGroup.Patch("/me", authMiddleware, userHandler.UpdateUser)
 	userGroup.Get("/leaderboard", userHandler.GetLeaderboard)
-	userGroup.Post("/", userHandler.CreateUser)
 	userGroup.Get("/username/:username", userHandler.GetUserByUsername)
 	userGroup.Get("/:id", userHandler.GetUserByID)
 }
