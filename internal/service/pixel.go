@@ -32,10 +32,16 @@ func NewPixelService(db *gorm.DB, config *config.PPlaceConfig, userService *User
 }
 
 func (s *PixelService) Create(c *fiber.Ctx, ctx context.Context, pixel *model.Pixel) (*model.Pixel, error) {
-	_, err := s.GetByCoordinates(ctx, pixel.X, pixel.Y)
-	if err == nil {
-		log.Error().Uint("x", pixel.X).Uint("y", pixel.Y).Msg("Cannot create pixel, pixel on that place already exists")
-		return nil, fiber.NewError(fiber.StatusConflict, fmt.Sprintf("pixel already exists: %d, %d", pixel.X, pixel.Y))
+	oldPixel, err := s.GetByCoordinates(ctx, pixel.X, pixel.Y)
+	if err == nil && oldPixel != nil {
+		oldPixel.Color = pixel.Color
+		updatedPixel, err2 := s.Update(c, ctx, oldPixel)
+		if err2 != nil {
+			log.Error().Err(err2).Uint("x", oldPixel.X).Uint("y", oldPixel.Y).Uint("id", oldPixel.ID).
+				Str("color", oldPixel.Color).Msg("Error updating pixel")
+			return nil, err2
+		}
+		return updatedPixel, nil
 	}
 
 	if (pixel.X > s.config.Sheet.Width) || (pixel.X < 1) || (pixel.Y > s.config.Sheet.Height) || (pixel.Y < 1) {
