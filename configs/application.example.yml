@@ -1,6 +1,7 @@
 pplace:
   port: 8080
   version: "1.0-dev"
+  log_level: "info"
   sheet:
     width: 500
     height: 500

@@ -16,6 +16,7 @@ type JWTConfig struct {
 type PPlaceConfig struct {
 	Port     uint           `yaml:"port"`
 	Version  string         `yaml:"version"`
+	LogLevel string         `yaml:"log_level"`
 	Database DatabaseConfig `yaml:"database"`
 	JWT      JWTConfig      `yaml:"jwt"`
 	Sheet    SheetConfig    `yaml:"sheet"`
