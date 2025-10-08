@@ -36,8 +36,16 @@ func main() {
 	if err != nil {
 		log.Fatal().Err(err).Msg("Failed to parse application.yml")
 	}
-
 	log.Info().Msg("Parsed application configuration")
+
+	level, err := zerolog.ParseLevel(config.PPlace.LogLevel)
+	if err != nil {
+		log.Error().Str("originalLogLevel", config.PPlace.LogLevel).Msg("Failed to parse log level, fallback to info level. Maybe a typo?")
+		level = zerolog.InfoLevel
+	}
+	zerolog.SetGlobalLevel(level)
+	log.Info().Msgf("Set log level to %s", level.String())
+
 	dbConfig := config.PPlace.Database
 	dsn := fmt.Sprintf("host=%v user=%v password=%v dbname=%v port=%v sslmode=disable", dbConfig.Host, dbConfig.User, dbConfig.Password, dbConfig.DBName, dbConfig.Port)
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{
