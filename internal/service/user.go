@@ -27,12 +27,12 @@ func NewUserService(db *gorm.DB, c *config.PPlaceConfig) *UserService {
 }
 
 func (s *UserService) Create(ctx context.Context, user *model.User) (*model.User, error) {
-	log.Info().Interface("user", user).Msg("Created user")
+	log.Info().Interface("id", user.ID).Msg("Created user")
 	return s.database.Create(ctx, user)
 }
 
 func (s *UserService) Update(ctx context.Context, user *model.User) (*model.User, error) {
-	log.Info().Interface("user", user).Msg("Updated user")
+	log.Info().Interface("id", user.ID).Msg("Updated user")
 	return s.database.Update(ctx, user)
 }
 
