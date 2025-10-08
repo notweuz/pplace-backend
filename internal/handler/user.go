@@ -24,7 +24,7 @@ func (h *UserHandler) GetSelfInfo(c *fiber.Ctx) error {
 		return err
 	}
 
-	userDto := response.NewUserDto(user.ID, user.Username, user.LastPlaced, user.AmountPlaced)
+	userDto := response.NewUserDto(user.ID, user.Username, user.LastPlaced, user.AmountPlaced, user.Admin)
 	return c.JSON(userDto)
 }
 
@@ -39,7 +39,7 @@ func (h *UserHandler) CreateUser(c *fiber.Ctx) error {
 		return response.NewHttpError(fiber.StatusInternalServerError, "Failed to create user", []string{err.Error()})
 	}
 
-	userDto := response.NewUserDto(createdUser.ID, createdUser.Username, createdUser.LastPlaced, createdUser.AmountPlaced)
+	userDto := response.NewUserDto(createdUser.ID, createdUser.Username, createdUser.LastPlaced, createdUser.AmountPlaced, user.Admin)
 	return c.Status(fiber.StatusCreated).JSON(userDto)
 }
 
@@ -71,7 +71,7 @@ func (h *UserHandler) UpdateUser(c *fiber.Ctx) error {
 		return err
 	}
 
-	userDto := response.NewUserDto(updatedUser.ID, updatedUser.Username, updatedUser.LastPlaced, updatedUser.AmountPlaced)
+	userDto := response.NewUserDto(updatedUser.ID, updatedUser.Username, updatedUser.LastPlaced, updatedUser.AmountPlaced, updatedUser.Admin)
 	return c.JSON(userDto)
 }
 
@@ -86,7 +86,7 @@ func (h *UserHandler) GetUserByID(c *fiber.Ctx) error {
 		return response.NewHttpError(fiber.StatusNotFound, "User not found", []string{err.Error()})
 	}
 
-	userDto := response.NewUserDto(user.ID, user.Username, user.LastPlaced, user.AmountPlaced)
+	userDto := response.NewUserDto(user.ID, user.Username, user.LastPlaced, user.AmountPlaced, user.Admin)
 	return c.JSON(userDto)
 }
 
@@ -101,7 +101,7 @@ func (h *UserHandler) GetUserByUsername(c *fiber.Ctx) error {
 		return response.NewHttpError(fiber.StatusNotFound, "User not found", []string{err.Error()})
 	}
 
-	userDto := response.NewUserDto(user.ID, user.Username, user.LastPlaced, user.AmountPlaced)
+	userDto := response.NewUserDto(user.ID, user.Username, user.LastPlaced, user.AmountPlaced, user.Admin)
 	return c.JSON(userDto)
 }
 
@@ -119,7 +119,7 @@ func (h *UserHandler) GetLeaderboard(c *fiber.Ctx) error {
 
 	userDTOs := make([]response.UserDto, len(users))
 	for i, user := range users {
-		userDTOs[i] = *response.NewUserDto(user.ID, user.Username, user.LastPlaced, user.AmountPlaced)
+		userDTOs[i] = *response.NewUserDto(user.ID, user.Username, user.LastPlaced, user.AmountPlaced, user.Admin)
 	}
 	leaderboardDto := response.UserListDto{Users: userDTOs}
 	return c.JSON(leaderboardDto)
