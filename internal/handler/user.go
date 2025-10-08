@@ -117,10 +117,10 @@ func (h *UserHandler) GetLeaderboard(c *fiber.Ctx) error {
 		return response.NewHttpError(fiber.StatusInternalServerError, "Failed to retrieve leaderboard", []string{err.Error()})
 	}
 
-	userDtos := make([]response.UserDto, len(users))
+	userDTOs := make([]response.UserDto, len(users))
 	for i, user := range users {
-		userDtos[i] = *response.NewUserDto(user.ID, user.Username, user.LastPlaced, user.AmountPlaced)
+		userDTOs[i] = *response.NewUserDto(user.ID, user.Username, user.LastPlaced, user.AmountPlaced)
 	}
-	leaderboardDto := response.UserListDto{Users: userDtos}
+	leaderboardDto := response.UserListDto{Users: userDTOs}
 	return c.JSON(leaderboardDto)
 }
