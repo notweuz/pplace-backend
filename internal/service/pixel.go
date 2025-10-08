@@ -32,6 +32,16 @@ func NewPixelService(db *gorm.DB, config *config.PPlaceConfig, userService *User
 }
 
 func (s *PixelService) Create(c *fiber.Ctx, ctx context.Context, pixel *model.Pixel) (*model.Pixel, error) {
+	author, err := s.userService.GetSelfInfo(c)
+	if err != nil {
+		return nil, err
+	}
+
+	err = s.CheckIsUserAccountActive(author)
+	if err != nil {
+		return nil, err
+	}
+
 	oldPixel, err := s.GetByCoordinates(ctx, pixel.X, pixel.Y)
 	if err == nil && oldPixel != nil {
 		oldPixel.Color = pixel.Color
@@ -48,11 +58,6 @@ func (s *PixelService) Create(c *fiber.Ctx, ctx context.Context, pixel *model.Pi
 		log.Error().Uint("x", pixel.X).Uint("y", pixel.Y).Interface("current size", s.config.Sheet).Msg("Pixel coordinates out of range")
 		return nil, fiber.NewError(fiber.StatusBadRequest,
 			fmt.Sprintf("pixel coordinates out of range: %d, %d / %d, %d", pixel.X, pixel.Y, s.config.Sheet.Width, s.config.Sheet.Height))
-	}
-
-	author, err := s.userService.GetSelfInfo(c)
-	if err != nil {
-		return nil, err
 	}
 
 	isReady, dur, err := s.checkPlaceCooldown(author)
@@ -85,6 +90,11 @@ func (s *PixelService) Create(c *fiber.Ctx, ctx context.Context, pixel *model.Pi
 
 func (s *PixelService) Update(c *fiber.Ctx, ctx context.Context, pixel *model.Pixel) (*model.Pixel, error) {
 	author, err := s.userService.GetSelfInfo(c)
+	if err != nil {
+		return nil, err
+	}
+
+	err = s.CheckIsUserAccountActive(author)
 	if err != nil {
 		return nil, err
 	}
@@ -170,6 +180,11 @@ func (s *PixelService) Delete(c *fiber.Ctx, ctx context.Context, id uint) error 
 		return err
 	}
 
+	err = s.CheckIsUserAccountActive(user)
+	if err != nil {
+		return err
+	}
+
 	isReady, dur, err := s.checkPlaceCooldown(user)
 	if err != nil {
 		return err
@@ -213,4 +228,11 @@ func (s *PixelService) checkPlaceCooldown(user *model.User) (bool, time.Duration
 		Msg("Cooldown check")
 
 	return canPlace, cooldown, nil
+}
+
+func (s *PixelService) CheckIsUserAccountActive(user *model.User) error {
+	if !user.Active {
+		return fiber.NewError(fiber.StatusForbidden, "User account is deactivated")
+	}
+	return nil
 }
