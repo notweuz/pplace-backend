@@ -174,6 +174,21 @@ func (s *PixelService) GetAllByUserSelf(c *fiber.Ctx, ctx context.Context) ([]mo
 	return s.database.GetAllByUserID(ctx, user.ID)
 }
 
+func (s *PixelService) DeleteByCoordinates(c *fiber.Ctx, ctx context.Context, x, y uint) error {
+	pixel, err := s.GetByCoordinates(ctx, x, y)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			log.Error().Uint("x", x).Uint("y", y).Msg("Pixel not found")
+			return fiber.NewError(fiber.StatusNotFound, "Pixel not found")
+		}
+		log.Error().Err(err).Uint("x", x).Uint("y", y).Msg("Failed to get pixel by coordinates")
+		return err
+	}
+
+	log.Info().Uint("x", x).Uint("y", y).Msg("Deleting pixel by coordinates")
+	return s.Delete(c, ctx, pixel.ID)
+}
+
 func (s *PixelService) Delete(c *fiber.Ctx, ctx context.Context, id uint) error {
 	user, err := s.userService.GetSelfInfo(c)
 	if err != nil {

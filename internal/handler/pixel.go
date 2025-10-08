@@ -143,6 +143,26 @@ func (h *PixelHandler) GetByCoordinates(c *fiber.Ctx) error {
 	return c.Status(fiber.StatusOK).JSON(pixelDto)
 }
 
+func (h *PixelHandler) DeleteByCoordinates(c *fiber.Ctx) error {
+	x := c.QueryInt("x", -1)
+	y := c.QueryInt("y", -1)
+
+	if x == -1 || y == -1 {
+		return response.NewHttpError(
+			fiber.StatusBadRequest,
+			"Both coordinates are missing",
+			[]string{},
+		)
+	}
+
+	err := h.service.DeleteByCoordinates(c, c.Context(), uint(x), uint(y))
+	if err != nil {
+		return err
+	}
+
+	return c.SendStatus(fiber.StatusNoContent)
+}
+
 func (h *PixelHandler) Delete(c *fiber.Ctx) error {
 	id, err := c.ParamsInt("id")
 	if err != nil {

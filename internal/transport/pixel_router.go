@@ -22,5 +22,6 @@ func SetupPixelRoutes(group fiber.Router, service *service.PixelService, userSer
 	pixelsGroup.Get("/search", pixelHandler.GetByCoordinates)
 	pixelsGroup.Get("/ws", ws.WebsocketHandler())
 	pixelsGroup.Get("/:id", pixelHandler.GetByID)
+	pixelsGroup.Delete("/", authMiddleware, pixelHandler.DeleteByCoordinates)
 	pixelsGroup.Delete("/:id", authMiddleware, pixelHandler.Delete)
 }
