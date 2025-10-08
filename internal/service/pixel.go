@@ -61,7 +61,7 @@ func (s *PixelService) Create(c *fiber.Ctx, ctx context.Context, pixel *model.Pi
 	}
 
 	if !isReady {
-		return nil, fiber.NewError(fiber.StatusForbidden, fmt.Sprintf("Cannot create pixel, user is on cooldown for %s", dur.String()))
+		return nil, fiber.NewError(fiber.StatusTooManyRequests, fmt.Sprintf("Cannot create pixel, user is on cooldown for %s", dur.String()))
 	}
 
 	pixel.UserID = author.ID
@@ -95,7 +95,7 @@ func (s *PixelService) Update(c *fiber.Ctx, ctx context.Context, pixel *model.Pi
 	}
 
 	if !isReady {
-		return nil, fiber.NewError(fiber.StatusForbidden, fmt.Sprintf("Cannot create pixel, user is on cooldown for %s", dur.String()))
+		return nil, fiber.NewError(fiber.StatusTooManyRequests, fmt.Sprintf("Cannot create pixel, user is on cooldown for %s", dur.String()))
 	}
 
 	oldPixel, err := s.GetByID(ctx, pixel.ID)
