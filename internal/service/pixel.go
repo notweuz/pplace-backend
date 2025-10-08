@@ -165,9 +165,18 @@ func (s *PixelService) GetAllByUserSelf(c *fiber.Ctx, ctx context.Context) ([]mo
 }
 
 func (s *PixelService) Delete(c *fiber.Ctx, ctx context.Context, id uint) error {
-	_, err := s.userService.GetSelfInfo(c)
+	user, err := s.userService.GetSelfInfo(c)
 	if err != nil {
 		return err
+	}
+
+	isReady, dur, err := s.checkPlaceCooldown(user)
+	if err != nil {
+		return err
+	}
+
+	if !isReady {
+		return fiber.NewError(fiber.StatusTooManyRequests, fmt.Sprintf("Cannot create pixel, user is on cooldown for %s", dur.String()))
 	}
 
 	err = s.database.Delete(ctx, id)
