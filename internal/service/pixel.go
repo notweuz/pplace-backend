@@ -219,6 +219,14 @@ func (s *PixelService) Delete(c *fiber.Ctx, ctx context.Context, id uint) error 
 		return err
 	}
 
+	user.LastPlaced = time.Now()
+	user.AmountPlaced++
+	_, err = s.userService.Update(ctx, user)
+	if err != nil {
+		log.Error().Int("amount placed", user.AmountPlaced).Time("last placed", user.LastPlaced).Err(err).Msg("Failed to update user after placing pixel")
+		return err
+	}
+
 	log.Info().Uint("id", id).Msg("Deleted pixel")
 	go ws.BroadcastPixelDelete(id, 0, 0)
 	return nil
