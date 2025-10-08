@@ -56,6 +56,11 @@ func (s *UserService) GetSelfInfo(c *fiber.Ctx) (*model.User, error) {
 	return user, nil
 }
 
+func (s *UserService) GetLeaderboard(ctx context.Context, page, size int) ([]model.User, error) {
+	log.Info().Int("page", page).Int("size", size).Msg("Getting leaderboard")
+	return s.database.GetLeaderboard(ctx, page, size)
+}
+
 func (s *UserService) UpdateProfile(ctx context.Context, userID uint, username, password string) (*model.User, error) {
 	currentUser, err := s.database.GetById(ctx, userID)
 	if err != nil || currentUser == nil {

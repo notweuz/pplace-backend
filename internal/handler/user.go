@@ -104,3 +104,23 @@ func (h *UserHandler) GetUserByUsername(c *fiber.Ctx) error {
 	userDto := response.NewUserDto(user.ID, user.Username, user.LastPlaced, user.AmountPlaced)
 	return c.JSON(userDto)
 }
+
+func (h *UserHandler) GetLeaderboard(c *fiber.Ctx) error {
+	page := c.QueryInt("page", 1)
+	size := c.QueryInt("size", 10)
+	if page < 1 || size < 1 || size > 10 {
+		return response.NewHttpError(fiber.StatusBadRequest, "Invalid pagination parameters", nil)
+	}
+
+	users, err := h.service.GetLeaderboard(c.Context(), page, size)
+	if err != nil {
+		return response.NewHttpError(fiber.StatusInternalServerError, "Failed to retrieve leaderboard", []string{err.Error()})
+	}
+
+	userDtos := make([]response.UserDto, len(users))
+	for i, user := range users {
+		userDtos[i] = *response.NewUserDto(user.ID, user.Username, user.LastPlaced, user.AmountPlaced)
+	}
+	leaderboardDto := response.UserListDto{Users: userDtos}
+	return c.JSON(leaderboardDto)
+}

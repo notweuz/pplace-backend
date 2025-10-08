@@ -46,3 +46,13 @@ func (d *UserDatabase) GetByUsername(ctx context.Context, username string) (*mod
 	}
 	return &user, result.Error
 }
+
+func (d *UserDatabase) GetLeaderboard(ctx context.Context, page, size int) ([]model.User, error) {
+	var users []model.User
+	result := d.db.WithContext(ctx).
+		Order("amount_placed DESC").
+		Offset((page - 1) * size).
+		Limit(size).
+		Find(&users)
+	return users, result.Error
+}
