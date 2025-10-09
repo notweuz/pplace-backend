@@ -32,5 +32,8 @@ func (c *Client) writePump() {
 			break
 		}
 	}
-	_ = c.conn.Close()
+	err := c.conn.Close()
+	if err != nil {
+		log.Error().Err(err).Msg("Failed to close connection")
+	}
 }
