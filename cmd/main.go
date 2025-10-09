@@ -12,6 +12,7 @@ import (
 	"pplace_backend/internal/ws"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 	"github.com/rs/zerolog/pkgerrors"
@@ -66,6 +67,7 @@ func main() {
 		ErrorHandler: middleware.CustomErrorHandler(),
 	})
 	app.Use(middleware.LoggingMiddleware())
+	app.Use(cors.New())
 	log.Info().Msg("Initializing fiber application")
 
 	userService := service.NewUserService(db, &config.PPlace)
